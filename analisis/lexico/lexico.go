@@ -25,6 +25,7 @@ func Scanner(entrada string) {
 	for i := 0; i < len(entrada); i++ {
 		// caracter = string([]rune(entrada)[i])
 		caracter = string(entrada[i])
+		// fmt.Println(caracter)
 
 		switch estado {
 		case 0:
@@ -42,6 +43,9 @@ func Scanner(entrada string) {
 				auxiliar.WriteString(caracter)
 			} else if caracter == "\\" { // Siguiente Linea
 				estado = 5
+				auxiliar.WriteString(caracter)
+			} else if caracter == "/" { // Rutas
+				estado = 8
 				auxiliar.WriteString(caracter)
 			} else if esEspacio(caracter) { // Siguiente Linea
 				estado = 0
@@ -85,6 +89,13 @@ func Scanner(entrada string) {
 				i--
 			}
 		case 4:
+			if caracter != "\"" {
+				// estado = 4
+				auxiliar.WriteString(caracter)
+			} else {
+				auxiliar.WriteString(caracter)
+				agregarToken("CADENA")
+			}
 		case 5:
 		case 6:
 			if esDigito(caracter) {
@@ -102,7 +113,15 @@ func Scanner(entrada string) {
 				agregarParametro()
 				i--
 			}
+		case 8:
+			if !esEspacio(caracter) {
+				// estado = 4
+				auxiliar.WriteString(caracter)
+			} else {
+				agregarToken("RUTA")
+			}
 		}
+		columna++
 	}
 }
 
@@ -225,6 +244,9 @@ func agregarParametro() {
 	case "-usr":
 		agregarToken("-USR")
 	default:
+		agregarError(auxiliar.String())
+		auxiliar.Reset()
+		estado = 0
 	}
 }
 
