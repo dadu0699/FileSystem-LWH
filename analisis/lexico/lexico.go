@@ -8,13 +8,13 @@ import (
 )
 
 // Variables Globales
-var auxiliar strings.Builder
+var auxiliar strings.Builder // var auxiliar string
 var estado int
 var idToken int
 var idError int
 var fila int
 var columna int
-var listaErrores []errort.ErrorT
+var listaErrores []errort.ErrorT // var listaErrores = make([]errort.ErrorT, 0)
 var listaTokens []token.Token
 
 // Inicializar variables globales

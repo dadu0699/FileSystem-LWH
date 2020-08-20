@@ -13,7 +13,7 @@ func Interfaz() {
 	fmt.Println("╔══════════════════════╗")
 	fmt.Println("║      Bienvenido      ║")
 	fmt.Println("╚══════════════════════╝")
-	leerArchivo("./entradaPrueba.mias")
+	leerArchivo("./entradaPrueba.mia")
 	fmt.Print(">> ")
 	str := lecturaTeclado()
 
@@ -43,10 +43,15 @@ func lecturaTeclado() string {
 
 func leerArchivo(ruta string) {
 	archivo, err := os.Open(ruta)
-	defer archivo.Close()
+	defer func() {
+		archivo.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
 
 	if err != nil {
-		fmt.Println(">> 'Error al leer archivo'")
+		panic(">> 'El fichero o directorio no existe'")
 	}
 
 	scanner := bufio.NewScanner(archivo)
@@ -56,7 +61,7 @@ func leerArchivo(ruta string) {
 			fmt.Println(">>", linea)
 			lexico.Inicializar()
 			lexico.Scanner(linea)
-			fmt.Println(">>", lexico.ListaTokens(), "\n----------------------------------------------")
+			// fmt.Println(">>", lexico.ListaTokens(), "\n----------------------------------------------")
 		}
 	}
 }
