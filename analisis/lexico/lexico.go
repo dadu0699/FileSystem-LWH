@@ -3,12 +3,13 @@ package lexico
 import (
 	"Sistema-de-archivos-LWH/analisis/errort"
 	"Sistema-de-archivos-LWH/analisis/token"
+	"fmt"
 	"strings"
 	"unicode"
 )
 
 // Variables Globales
-var auxiliar strings.Builder // var auxiliar string = ""
+var auxiliar strings.Builder
 var estado int = 0
 var idToken int = 0
 var idError int = 0
@@ -47,7 +48,7 @@ func Scanner(entrada string) {
 			} else if caracter == "/" { // Rutas
 				estado = 8
 				auxiliar.WriteString(caracter)
-			} else if esEspacio(caracter) { // Siguiente Linea
+			} else if esEspacio(caracter) { // Espacios
 				estado = 0
 				auxiliar.Reset()
 				// Cambio de fila y reinicio de columnas en los saltos de linea
@@ -55,9 +56,22 @@ func Scanner(entrada string) {
 					columna = 1
 					fila++
 				}
+			} else if caracter == "#" { // Comentarios
+				if i == len(entrada)-1 {
+					fmt.Println("Análisis léxico completado")
+				} else {
+					estado = 9
+					auxiliar.WriteString(caracter)
+				}
+			} else if caracter == "." { // Extension
+				estado = 10
+				auxiliar.WriteString(caracter)
+			} else if !agregarSimbolo(caracter) {
+				agregarError(caracter)
+				estado = 0
 			}
 		case 1:
-			if esLetra(caracter) || esDigito(caracter) {
+			if esLetra(caracter) || esDigito(caracter) || caracter == "_" {
 				// estado = 1
 				auxiliar.WriteString(caracter)
 			} else {
@@ -97,6 +111,15 @@ func Scanner(entrada string) {
 				agregarToken("CADENA")
 			}
 		case 5:
+			if caracter == "*" {
+				auxiliar.WriteString(caracter)
+				agregarToken("CONTINUAR")
+			} else {
+				agregarError(caracter)
+				auxiliar.Reset()
+				estado = 0
+				i--
+			}
 		case 6:
 			if esDigito(caracter) {
 				// estado = 6
@@ -119,6 +142,24 @@ func Scanner(entrada string) {
 				auxiliar.WriteString(caracter)
 			} else {
 				agregarToken("RUTA")
+			}
+		case 9:
+			if caracter != "\n" {
+				estado = 9
+				auxiliar.WriteString(caracter)
+			} else {
+				auxiliar.WriteString(caracter)
+				agregarToken("COMENTARIO")
+				columna = 1
+				fila++
+			}
+		case 10:
+			if esLetra(caracter) {
+				// estado = 10
+				auxiliar.WriteString(caracter)
+			} else {
+				agregarExtension()
+				i--
 			}
 		}
 		columna++
@@ -243,6 +284,19 @@ func agregarParametro() {
 		agregarToken("-UNIT")
 	case "-usr":
 		agregarToken("-USR")
+	default:
+		agregarError(auxiliar.String())
+		auxiliar.Reset()
+		estado = 0
+	}
+}
+
+func agregarExtension() {
+	switch auxiliar.String() {
+	case ".mia":
+		agregarToken(".MIA")
+	case ".dsk":
+		agregarToken(".DSK")
 	default:
 		agregarError(auxiliar.String())
 		auxiliar.Reset()
