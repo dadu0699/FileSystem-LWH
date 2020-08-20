@@ -3,20 +3,31 @@ package lexico
 import (
 	"Sistema-de-archivos-LWH/analisis/errort"
 	"Sistema-de-archivos-LWH/analisis/token"
-	"fmt"
 	"strings"
 	"unicode"
 )
 
 // Variables Globales
 var auxiliar strings.Builder
-var estado int = 0
-var idToken int = 0
-var idError int = 0
-var fila = 1
-var columna = 1
+var estado int
+var idToken int
+var idError int
+var fila int
+var columna int
 var listaErrores []errort.ErrorT
 var listaTokens []token.Token
+
+// Inicializar variables globales
+func Inicializar() {
+	auxiliar.Reset()
+	estado = 0
+	idToken = 0
+	idError = 0
+	fila = 1
+	columna = 1
+	listaErrores = nil
+	listaTokens = nil
+}
 
 // Scanner realiza el analisis lexico
 func Scanner(entrada string) {
@@ -58,7 +69,7 @@ func Scanner(entrada string) {
 				}
 			} else if caracter == "#" { // Comentarios
 				if i == len(entrada)-1 {
-					fmt.Println("Análisis léxico completado")
+					// fmt.Println("Análisis léxico completado")
 				} else {
 					estado = 9
 					auxiliar.WriteString(caracter)
