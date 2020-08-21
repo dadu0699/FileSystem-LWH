@@ -104,6 +104,9 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 			if esLetra(caracter) {
 				estado = 7
 				auxiliar.WriteString(caracter)
+			} else if esDigito(caracter) {
+				estado = 2
+				auxiliar.WriteString(caracter)
 			} else if caracter == ">" {
 				auxiliar.WriteString(caracter)
 				agregarToken("ASIGNACION")
