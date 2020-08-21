@@ -1,27 +1,35 @@
-package menu
+package archivo
 
 import (
 	"Sistema-de-archivos-LWH/analisis/lexico"
 	"Sistema-de-archivos-LWH/analisis/sintactico"
-	"Sistema-de-archivos-LWH/util"
-	"Sistema-de-archivos-LWH/util/archivo"
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 )
 
-// Interfaz de línea de comandos
-func Interfaz() {
-	fmt.Println("╔══════════════════════╗")
-	fmt.Println("║      Bienvenido      ║")
-	fmt.Println("╚══════════════════════╝")
-	fmt.Print(">> ")
-	str := util.LecturaTeclado()
+// Leer abre y recorre el archivo
+func Leer(ruta string) {
+	ruta = strings.ReplaceAll(ruta, "\"", "")
+	archivo, err := os.Open(ruta)
+	defer func() {
+		archivo.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
 
-	for !strings.EqualFold(str, "exit") {
-		if strings.EqualFold(str, "pause") {
-			str = util.LecturaTeclado()
-		} else {
-			listaTokens, listaErrores := lexico.Scanner(str)
+	if err != nil {
+		panic(">> 'El fichero o directorio no existe'")
+	}
+
+	scanner := bufio.NewScanner(archivo)
+	for scanner.Scan() {
+		linea := scanner.Text()
+		if linea != "" {
+			fmt.Println(">>", linea)
+			listaTokens, listaErrores := lexico.Scanner(linea)
 			if len(listaErrores) > 0 {
 				fmt.Println(">> 'La entrada contiene errores lexicos'")
 				fmt.Println(">> LISTADO DE ERRORES:", listaErrores)
@@ -32,9 +40,10 @@ func Interfaz() {
 						listaTokens[2].GetTipo() == "ASIGNACION" &&
 						(listaTokens[3].GetTipo() == "RUTA" ||
 							listaTokens[3].GetTipo() == "CADENA") {
-						archivo.Leer(listaTokens[3].GetValor())
+
+						Leer(listaTokens[3].GetValor())
 					} else {
-						fmt.Println(">> 'ERROR DE INSTRUCCION'")
+						panic(">> 'ERROR DE INSTRUCCION'")
 					}
 				} else {
 					// INICIO ANALISIS SINTACTICO
@@ -42,7 +51,5 @@ func Interfaz() {
 				}
 			}
 		}
-		fmt.Print(">> ")
-		str = util.LecturaTeclado()
 	}
 }

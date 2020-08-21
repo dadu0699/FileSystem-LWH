@@ -17,8 +17,7 @@ var columna int
 var listaErrores []errort.ErrorT // var listaErrores = make([]errort.ErrorT, 0)
 var listaTokens []token.Token
 
-// Inicializar variables globales
-func Inicializar() {
+func inicializar() {
 	auxiliar.Reset()
 	estado = 0
 	idToken = 0
@@ -30,7 +29,8 @@ func Inicializar() {
 }
 
 // Scanner realiza el analisis lexico
-func Scanner(entrada string) {
+func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
+	inicializar()
 	caracter := ""
 	entrada += "\n#"
 
@@ -74,7 +74,7 @@ func Scanner(entrada string) {
 					estado = 9
 					auxiliar.WriteString(caracter)
 				}
-			} else if caracter == "." { // Extension
+			} else if caracter == "." { // Extension Archivos
 				estado = 10
 				auxiliar.WriteString(caracter)
 			} else if !agregarSimbolo(caracter) {
@@ -108,7 +108,7 @@ func Scanner(entrada string) {
 				auxiliar.WriteString(caracter)
 				agregarToken("ASIGNACION")
 			} else {
-				agregarError(caracter)
+				agregarError(string(entrada[i-1]))
 				auxiliar.Reset()
 				estado = 0
 				i--
@@ -126,7 +126,7 @@ func Scanner(entrada string) {
 				auxiliar.WriteString(caracter)
 				agregarToken("CONTINUAR")
 			} else {
-				agregarError(caracter)
+				agregarError(string(entrada[i-1]))
 				auxiliar.Reset()
 				estado = 0
 				i--
@@ -136,7 +136,13 @@ func Scanner(entrada string) {
 				// estado = 6
 				auxiliar.WriteString(caracter)
 			} else {
-				agregarToken("DECIMAL")
+				if esDigito(string(entrada[i-1])) {
+					agregarToken("DECIMAL")
+				} else {
+					agregarError(string(entrada[i-1]))
+					auxiliar.Reset()
+					estado = 0
+				}
 				i--
 			}
 		case 7:
@@ -175,6 +181,7 @@ func Scanner(entrada string) {
 		}
 		columna++
 	}
+	return listaTokens, listaErrores
 }
 
 func agregarSimbolo(caracter string) bool {
