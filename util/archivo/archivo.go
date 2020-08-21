@@ -21,7 +21,7 @@ func Leer(ruta string) {
 	}()
 
 	if err != nil {
-		panic(">> 'El fichero o directorio no existe'")
+		panic(">> 'El fichero o directorio no existe'\n")
 	}
 
 	scanner := bufio.NewScanner(archivo)
@@ -34,6 +34,7 @@ func Leer(ruta string) {
 				fmt.Println(">> 'La entrada contiene errores lexicos'")
 				fmt.Println(">> LISTADO DE ERRORES:", listaErrores)
 				fmt.Println(">> LISTADO DE TOKENS:", listaTokens)
+				fmt.Println()
 			} else if len(listaTokens) > 0 {
 				if listaTokens[0].GetTipo() == "EXEC" {
 					if len(listaTokens) == 4 && listaTokens[1].GetTipo() == "-PATH" &&
@@ -43,7 +44,7 @@ func Leer(ruta string) {
 
 						Leer(listaTokens[3].GetValor())
 					} else {
-						panic(">> 'ERROR DE INSTRUCCION'")
+						panic(">> 'ERROR DE INSTRUCCION'\n")
 					}
 				} else {
 					// INICIO ANALISIS SINTACTICO

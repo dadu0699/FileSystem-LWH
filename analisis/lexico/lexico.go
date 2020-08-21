@@ -155,7 +155,7 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 			}
 		case 8:
 			if !esEspacio(caracter) {
-				// estado = 4
+				// estado = 8
 				auxiliar.WriteString(caracter)
 			} else {
 				agregarToken("RUTA")

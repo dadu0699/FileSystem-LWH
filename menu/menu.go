@@ -26,6 +26,7 @@ func Interfaz() {
 				fmt.Println(">> 'La entrada contiene errores lexicos'")
 				fmt.Println(">> LISTADO DE ERRORES:", listaErrores)
 				fmt.Println(">> LISTADO DE TOKENS:", listaTokens)
+				fmt.Println()
 			} else if len(listaTokens) > 0 {
 				if listaTokens[0].GetTipo() == "EXEC" {
 					if len(listaTokens) == 4 && listaTokens[1].GetTipo() == "-PATH" &&
@@ -35,6 +36,7 @@ func Interfaz() {
 						archivo.Leer(listaTokens[3].GetValor())
 					} else {
 						fmt.Println(">> 'ERROR DE INSTRUCCION'")
+						fmt.Println()
 					}
 				} else {
 					// INICIO ANALISIS SINTACTICO
