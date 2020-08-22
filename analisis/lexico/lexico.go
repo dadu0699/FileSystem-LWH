@@ -8,7 +8,7 @@ import (
 )
 
 // Variables Globales
-var auxiliar strings.Builder // var auxiliar string
+var auxiliar strings.Builder
 var estado int
 var idToken int
 var idError int

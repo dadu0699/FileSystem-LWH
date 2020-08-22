@@ -70,6 +70,11 @@ func instruccion() {
 	case "MOUNT":
 	case "UNMOUNT":
 		parser("UNMOUNT")
+		parser("-ID")
+		parser("ENTERO")
+		parser("ASIGNACION")
+		parser("ID")
+		listadoID()
 	}
 }
 
@@ -228,18 +233,32 @@ func nombres() {
 	}
 }
 
+func listadoID() {
+	switch preAnalisis.GetTipo() {
+	case "-ID":
+		parser("-ID")
+		parser("ENTERO")
+		parser("ASIGNACION")
+		parser("ID")
+		listadoID()
+	}
+}
+
 func parser(tipo string) {
 	if preAnalisis.GetTipo() != "EOF" {
 		if preAnalisis.GetTipo() != tipo {
 			mensajePanic(tipo)
 		}
+
 		index++
 		preAnalisis = listaTokens[index]
+	} else {
+		mensajePanic("PARAMETROS")
 	}
 }
 
 func mensajePanic(mensaje string) {
-	tipo := preAnalisis.GetTipo()
+	tipo := preAnalisis.GetValor()
 	if tipo == "EOF" {
 		tipo = "FIN DE INSTRUCCION"
 	}
