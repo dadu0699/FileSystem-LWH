@@ -28,6 +28,13 @@ func Leer(ruta string) {
 	for scanner.Scan() {
 		linea := scanner.Text()
 		if linea != "" {
+
+			for strings.Contains(linea, "\\*") {
+				linea = strings.ReplaceAll(linea, "\\*", "")
+				scanner.Scan()
+				linea += scanner.Text()
+			}
+
 			fmt.Println(">>", linea)
 			listaTokens, listaErrores := lexico.Scanner(linea)
 			if len(listaErrores) > 0 {

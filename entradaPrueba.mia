@@ -2,7 +2,8 @@
 Mkdisk -size->32 -path->/home/user/ \*
 -name->Disco1.dsk -uniT->k
 #Se crearán carpetas si no existen
-mkdisk -SiZe->8 -pAth->"/home/mis discos/DISCO Prueba/" \*
+mkdisk -SiZe->8 \* 
+-pAth->"/home/mis discos/DISCO Prueba/" \*
 -namE->Disco_3.dsk
 #Creará un disco de 16 Mb ya que no hay parámetro unit
 Mkdisk -size->16 -path->"/home/mis discos/" -NaMe->Disco4.dsk
