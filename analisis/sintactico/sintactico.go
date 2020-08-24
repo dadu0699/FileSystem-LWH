@@ -1,8 +1,8 @@
 package sintactico
 
 import (
-	"Sistema-de-archivos-LWH/analisis/errort"
 	"Sistema-de-archivos-LWH/analisis/token"
+	"Sistema-de-archivos-LWH/ejecucion"
 	"fmt"
 )
 
@@ -10,9 +10,6 @@ import (
 var index int
 var preAnalisis token.Token
 var listaTokens []token.Token
-var idError int
-var errorSintactico bool
-var listaErrores []errort.ErrorT
 
 // Analizar inicio del analisis sintactico
 func Analizar(listadoAnalisisLexico []token.Token) {
@@ -24,17 +21,16 @@ func Analizar(listadoAnalisisLexico []token.Token) {
 	listaTokens = append(listaTokens, *token)
 	preAnalisis = listaTokens[index]
 
-	idError = 0
-	errorSintactico = false
-	listaErrores = nil
-
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
+			fmt.Println()
+			// util.LecturaTeclado()
 		}
 	}()
 
 	inicio()
+	ejecucion.Ejecutar(listadoAnalisisLexico)
 }
 
 func inicio() {
@@ -47,7 +43,7 @@ func inicio() {
 		preAnalisis.GetTipo() == "UNMOUNT" {
 		instruccion()
 	} else {
-		panic(">> INSTRUCCION NO ENCONTRADA\n")
+		panic(">> INSTRUCCION NO ENCONTRADA")
 	}
 }
 
@@ -262,6 +258,6 @@ func mensajePanic(mensaje string) {
 	if tipo == "EOF" {
 		tipo = "FIN DE INSTRUCCION"
 	}
-	err := ">> 'ERROR: " + tipo + " SE ESPERABA " + mensaje + "'\n"
+	err := ">> 'ERROR: " + tipo + " SE ESPERABA " + mensaje + "'"
 	panic(err)
 }
