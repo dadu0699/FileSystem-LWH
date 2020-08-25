@@ -9,7 +9,7 @@ import (
 // MBR modelo de la estructura
 type MBR struct {
 	tamanio       int64
-	fechaCreacion time.Time
+	fechaCreacion [19]byte
 	diskSignature int64
 	particiones   [4]particion.Particion
 }
@@ -17,7 +17,8 @@ type MBR struct {
 // Inicializar recibe un puntero MBR para ser modificado.
 func (m *MBR) Inicializar(tamanio int64) {
 	m.tamanio = tamanio
-	m.fechaCreacion = time.Now()
+	fecha := time.Now().Format("01-02-2006 15:04:05")
+	copy(m.fechaCreacion[:], fecha)
 	m.diskSignature = rand.Int63n(1000)
 }
 
@@ -33,7 +34,7 @@ func (m MBR) GetTamanio() int64 {
 
 // GetFecha recibe una copia de MBR ya que no necesita modificarlo.
 func (m MBR) GetFecha() string {
-	return m.fechaCreacion.Format("01-02-2006 15:04:05")
+	return string(m.fechaCreacion[:])
 }
 
 // SetDiskSignature asigna el número random, que identificará de forma única a cada disco

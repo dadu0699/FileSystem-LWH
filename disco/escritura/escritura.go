@@ -1,6 +1,7 @@
 package escritura
 
 import (
+	"Sistema-de-archivos-LWH/disco/mbr"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -10,11 +11,10 @@ import (
 
 // CrearDisco crea el archivo binario
 func CrearDisco(tamanio int64, ruta string, nombre string, unidad string) {
-	archivo, err := os.Create("./prueba.dsk")
-	//crearDirectorio(ruta)
+	crearDirectorio(ruta)
 
 	// Creacion del archivo
-	// archivo, err := os.Create(ruta + nombre)
+	archivo, err := os.Create(ruta + nombre)
 	defer func() {
 		archivo.Close()
 		if r := recover(); r != nil {
@@ -25,6 +25,7 @@ func CrearDisco(tamanio int64, ruta string, nombre string, unidad string) {
 		panic(">> 'Error al crear disco'\n")
 	}
 
+	// Asignacion de tamaño especifico
 	switch strings.ToLower(unidad) {
 	case "k":
 		tamanio *= 1024
@@ -34,16 +35,23 @@ func CrearDisco(tamanio int64, ruta string, nombre string, unidad string) {
 		tamanio *= (1024 * 1024)
 	}
 
-	var inicio int8 = 0
-	s := &inicio
-	var binario bytes.Buffer
-	binary.Write(&binario, binary.BigEndian, s)
-	escribirEnDisco(archivo, binario.Bytes())
+	// Contenido inicial
+	var caracterFinal [2]byte
+	copy(caracterFinal[:], "\\0")
 
+	// Tamaño de disco
 	archivo.Seek(tamanio, 0)
 	var binario2 bytes.Buffer
-	binary.Write(&binario2, binary.BigEndian, s)
+	binary.Write(&binario2, binary.BigEndian, &caracterFinal)
 	escribirEnDisco(archivo, binario2.Bytes())
+
+	// Inserccion del Master Boot Record
+	archivo.Seek(0, 0)
+	var masterBootR mbr.MBR
+	masterBootR.Inicializar(tamanio)
+	var binario3 bytes.Buffer
+	binary.Write(&binario3, binary.BigEndian, &masterBootR)
+	escribirEnDisco(archivo, binario3.Bytes())
 }
 
 func escribirEnDisco(archivo *os.File, bytes []byte) {
