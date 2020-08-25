@@ -2,6 +2,7 @@ package mbr
 
 import (
 	"Sistema-de-archivos-LWH/disco/particion"
+	"math/rand"
 	"time"
 )
 
@@ -14,10 +15,10 @@ type MBR struct {
 }
 
 // Inicializar recibe un puntero MBR para ser modificado.
-func (m *MBR) Inicializar(tamanio int64, diskSignature int64) {
+func (m *MBR) Inicializar(tamanio int64) {
 	m.tamanio = tamanio
 	m.fechaCreacion = time.Now()
-	m.diskSignature = diskSignature
+	m.diskSignature = rand.Int63n(1000)
 }
 
 // SetTamanio recibe un puntero MBR para ser modificado.

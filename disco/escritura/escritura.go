@@ -1,16 +1,20 @@
 package escritura
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // CrearDisco crea el archivo binario
 func CrearDisco(tamanio int64, ruta string, nombre string, unidad string) {
-	crearDirectorio(ruta)
+	archivo, err := os.Create("./prueba.dsk")
+	//crearDirectorio(ruta)
 
 	// Creacion del archivo
-	archivo, err := os.Create(ruta + nombre)
+	// archivo, err := os.Create(ruta + nombre)
 	defer func() {
 		archivo.Close()
 		if r := recover(); r != nil {
@@ -21,9 +25,28 @@ func CrearDisco(tamanio int64, ruta string, nombre string, unidad string) {
 		panic(">> 'Error al crear disco'\n")
 	}
 
+	switch strings.ToLower(unidad) {
+	case "k":
+		tamanio *= 1024
+	case "m":
+		fallthrough
+	default:
+		tamanio *= (1024 * 1024)
+	}
+
+	var inicio int8 = 0
+	s := &inicio
+	var binario bytes.Buffer
+	binary.Write(&binario, binary.BigEndian, s)
+	escribirEnDisco(archivo, binario.Bytes())
+
+	archivo.Seek(tamanio, 0)
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s)
+	escribirEnDisco(archivo, binario2.Bytes())
 }
 
-func escribirDisco(archivo *os.File, bytes []byte) {
+func escribirEnDisco(archivo *os.File, bytes []byte) {
 	_, err := archivo.Write(bytes)
 	if err != nil {
 		panic(err)
