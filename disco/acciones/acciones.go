@@ -1,4 +1,4 @@
-package escritura
+package acciones
 
 import (
 	"Sistema-de-archivos-LWH/disco/mbr"
@@ -99,4 +99,12 @@ func leerBytes(file *os.File, number int) []byte {
 		panic(err)
 	}
 	return bytes
+}
+
+// EliminarDisco remueve el archivo .dsk
+func EliminarDisco(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -2,7 +2,7 @@ package ejecucion
 
 import (
 	"Sistema-de-archivos-LWH/analisis/token"
-	"Sistema-de-archivos-LWH/disco/escritura"
+	"Sistema-de-archivos-LWH/disco/acciones"
 	"Sistema-de-archivos-LWH/util"
 	"strconv"
 	"strings"
@@ -35,6 +35,8 @@ func iniciar() {
 		parser("MKDISK")
 		mkdisk()
 	case "RMDISK":
+		parser("RMDISK")
+		rmdisk()
 	case "FDISK":
 	case "MOUNT":
 	case "UNMOUNT":
@@ -72,7 +74,15 @@ func mkdisk() {
 			parser("ID")
 		}
 	}
-	escritura.CrearDisco(tamanio, ruta, nombre, unidad)
+	acciones.CrearDisco(tamanio, ruta, nombre, unidad)
+}
+
+func rmdisk() {
+	parser("-PATH")
+	parser("ASIGNACION")
+	ruta := strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+	parser("CADENA O RUTA")
+	acciones.EliminarDisco(ruta)
 }
 
 func parser(tipo string) {
