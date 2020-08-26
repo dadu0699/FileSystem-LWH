@@ -2,85 +2,85 @@ package ebr
 
 // EBR modelo de la estructura
 type EBR struct {
-	estado    byte
-	fit       byte
-	inicio    int64
-	tamanio   int64
-	siguiente int64
-	nombre    [16]byte
+	Estado    byte
+	Fit       byte
+	Inicio    int64
+	Tamanio   int64
+	Siguiente int64
+	Nombre    [16]byte
 }
 
 // Inicializar Recibe un puntero EBR para ser modificado.
-func (e *EBR) Inicializar(estado byte, fit byte, inicio int64, tamanio int64,
-	siguiente int64, nombre string) {
-	e.estado = estado
-	e.fit = fit
-	e.inicio = inicio
-	e.tamanio = tamanio
-	e.siguiente = siguiente
-	copy(e.nombre[:], nombre)
+func (e *EBR) Inicializar(Estado byte, Fit byte, Inicio int64, Tamanio int64,
+	Siguiente int64, Nombre string) {
+	e.Estado = Estado
+	e.Fit = Fit
+	e.Inicio = Inicio
+	e.Tamanio = Tamanio
+	e.Siguiente = Siguiente
+	copy(e.Nombre[:], Nombre)
 }
 
 // GetEstado recibe una copia de EBR ya que no necesita modificarlo.
 func (e EBR) GetEstado() byte {
-	return e.estado
+	return e.Estado
 }
 
 // SetEstado recibe un puntero EBR para ser modificado.
-func (e *EBR) SetEstado(estado byte) {
-	e.estado = estado
+func (e *EBR) SetEstado(Estado byte) {
+	e.Estado = Estado
 }
 
 // GetFit retorna el Fit del EBR
 func (e EBR) GetFit() byte {
-	return e.fit
+	return e.Fit
 }
 
-// SetFit asigna el fit
-func (e *EBR) SetFit(fit byte) {
-	e.fit = fit
+// SetFit asigna el Fit
+func (e *EBR) SetFit(Fit byte) {
+	e.Fit = Fit
 }
 
 // GetInicio retorna la posicion inicial del EBR
 func (e EBR) GetInicio() int64 {
-	return e.inicio
+	return e.Inicio
 }
 
 // SetInicio asigna la posicion inicial del EBR
-func (e *EBR) SetInicio(inicio int64) {
-	e.inicio = inicio
+func (e *EBR) SetInicio(Inicio int64) {
+	e.Inicio = Inicio
 }
 
 // GetTamanio obtiene el tamaño del EBR
 func (e EBR) GetTamanio() int64 {
-	return e.tamanio
+	return e.Tamanio
 }
 
 // SetTamanio asigna el tamaño al EBR
-func (e *EBR) SetTamanio(tamanio int64) {
-	e.tamanio = tamanio
+func (e *EBR) SetTamanio(Tamanio int64) {
+	e.Tamanio = Tamanio
 }
 
-// GetSiguiente obtiene el inicio del siguiente EBR
+// GetSiguiente obtiene el Inicio del Siguiente EBR
 func (e EBR) GetSiguiente() int64 {
-	return e.siguiente
+	return e.Siguiente
 }
 
-// SetSiguiente asigna el inicio del siguiente EBR
-func (e *EBR) SetSiguiente(siguiente int64) {
-	e.siguiente = siguiente
+// SetSiguiente asigna el Inicio del Siguiente EBR
+func (e *EBR) SetSiguiente(Siguiente int64) {
+	e.Siguiente = Siguiente
 }
 
-// GetNombre retorna el nombre del EBR
+// GetNombre retorna el Nombre del EBR
 func (e EBR) GetNombre() string {
-	nombre := ""
-	for i := 0; i < len(e.nombre); i++ {
-		nombre += string(e.nombre[i])
+	Nombre := ""
+	for i := 0; i < len(e.Nombre); i++ {
+		Nombre += string(e.Nombre[i])
 	}
-	return nombre
+	return Nombre
 }
 
-// SetNombre asigna el nombre al EBR
-func (e *EBR) SetNombre(nombre string) {
-	copy(e.nombre[:], nombre)
+// SetNombre asigna el Nombre al EBR
+func (e *EBR) SetNombre(Nombre string) {
+	copy(e.Nombre[:], Nombre)
 }
