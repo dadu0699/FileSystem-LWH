@@ -3,6 +3,7 @@ package acciones
 import (
 	"Sistema-de-archivos-LWH/disco/mbr"
 	"Sistema-de-archivos-LWH/disco/particion"
+	"Sistema-de-archivos-LWH/util/grafica"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -130,35 +131,113 @@ func CrearParticion(size int64, path string, name string, unit string,
 		size *= 1024
 	}
 
+	// Asignacion de fit
+	switch strings.ToLower(fit) {
+	case "bf":
+		fit = "B"
+	case "ff":
+		fit = "F"
+	case "wf":
+		fallthrough
+	default:
+		fit = "W"
+	}
+
+	// Asignacion tipo de particion
+	switch strings.ToLower(typeS) {
+	case "E":
+		typeS = "P"
+	case "L":
+		typeS = "E"
+	case "P":
+		fallthrough
+	default:
+		typeS = "W"
+	}
+
 	if (masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))) >= size {
 		posInicial := int64(unsafe.Sizeof(masterBootR))
-		particionesLibres := make([]particion.Particion, 0)
 
+		// Busqueda de particiones libres o desactivas
+		particionesLibres := make([]*particion.Particion, 0)
 		for i := 0; i < 4; i++ {
-			particionAuxiliar := masterBootR.GetParticion(i)
+			particionAuxiliar := masterBootR.GetParticionPuntero(i)
 			if particionAuxiliar.GetEstado() == byte(0) {
 				anterior := particionActivaAnterior(i)
 				siguiente := particionActivaSiguiente(i)
 				if anterior == -1 && siguiente == -1 {
 					particionAuxiliar.SetTamanio(masterBootR.Tamanio - posInicial)
+					particionAuxiliar.SetInicio(posInicial)
 				} else if anterior == -1 && siguiente != -1 {
 					particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - posInicial)
+					particionAuxiliar.SetInicio(posInicial)
 				} else if anterior != -1 && siguiente == -1 {
 					particionAuxiliar.SetTamanio(masterBootR.Tamanio -
 						(masterBootR.GetParticion(anterior).GetInicio() +
 							masterBootR.GetParticion(anterior).GetTamanio()))
+					particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
+						masterBootR.GetParticion(anterior).GetTamanio())
 				}
 				particionesLibres = append(particionesLibres, particionAuxiliar)
 			}
 		}
 
-		sort.SliceStable(particionesLibres, func(i, j int) bool {
-			return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
-		})
-		fmt.Println("By age,name:", particionesLibres)
+		switch fit {
+		case "B":
+			// Ordenamiento de la lista de particiones libres de menor a mayor
+			sort.SliceStable(particionesLibres, func(i, j int) bool {
+				return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
+			})
+
+		/*case "F":
+		for _, partX := range particionesLibres {
+			if partX.Tamanio >= size {
+				partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
+				return
+			}
+		}
+		panic(">> LA PARTICION ES MUY GRANDE")*/
+
+		case "W":
+			// Ordenamiento de la lista de particiones libres de mayor a menor
+			sort.SliceStable(particionesLibres, func(i, j int) bool {
+				return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
+			})
+		}
+
+		for i := 0; i < len(particionesLibres); i++ {
+			var partX *particion.Particion
+			partX = particionesLibres[i]
+			if partX.Tamanio >= size {
+				partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
+				escribirMBR(path)
+				return
+			}
+		}
+
+		panic(">> LA PARTICION ES MUY GRANDE")
 	} else {
-		fmt.Println(">> LA PARTICION ES MAS GRANDE QUE EL DISCO")
+		panic(">> LA PARTICION ES MAS GRANDE QUE EL DISCO")
 	}
+}
+
+func escribirMBR(path string) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	if err != nil {
+		panic(">> 'Error al montar disco'\n")
+	}
+
+	// Inserccion del Master Boot Record
+	file.Seek(0, 0) // Posicion Byte inicial
+	var binaryMBR bytes.Buffer
+	binary.Write(&binaryMBR, binary.BigEndian, &masterBootR)
+	escribirBytes(file, binaryMBR.Bytes())
 }
 
 func particionActivaAnterior(posicion int) int {
@@ -177,4 +256,10 @@ func particionActivaSiguiente(posicion int) int {
 		}
 	}
 	return -1
+}
+
+// Graficar ejecuta el metodo para crear la tabla del disco
+func Graficar(path string) {
+	MontarDisco(path)
+	grafica.TablaDisco(masterBootR)
 }

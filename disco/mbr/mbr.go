@@ -57,6 +57,11 @@ func (m MBR) GetParticion(posicion int) particion.Particion {
 	return m.Particiones[posicion]
 }
 
+// GetParticionPuntero retorna una particion especifica
+func (m *MBR) GetParticionPuntero(posicion int) *particion.Particion {
+	return &m.Particiones[posicion]
+}
+
 // GetParticiones retorna el arreglo de Particiones
 func (m MBR) GetParticiones() [4]particion.Particion {
 	return m.Particiones

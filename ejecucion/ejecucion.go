@@ -197,6 +197,7 @@ func fdisk() {
 		}
 	}
 	acciones.CrearParticion(tamanio, ruta, nombre, unidad, tipo, fit, addT, delelteS)
+	acciones.Graficar(ruta)
 }
 
 func parser(tipo string) {
