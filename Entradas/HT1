@@ -1,0 +1,5 @@
+Mkdisk -size->5 -path->"/home/mis discos/" -NaMe->Hoja1_201801266.dsk
+Fdisk -sizE->20 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 
+Fdisk -sizE->18 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2 
+Fdisk -sizE->101 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
+Fdisk -sizE->266 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4 
