@@ -1,5 +1,7 @@
 package particion
 
+import "strings"
+
 // Particion modelo de la estructura
 type Particion struct {
 	Estado  byte
@@ -77,7 +79,7 @@ func (p Particion) GetNombre() string {
 	for i := 0; i < len(p.Nombre); i++ {
 		Nombre += string(p.Nombre[i])
 	}
-	return Nombre
+	return strings.TrimSpace(Nombre)
 }
 
 // SetNombre asigna el Nombre a la particion

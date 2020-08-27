@@ -152,7 +152,7 @@ func CrearParticion(size int64, path string, name string, unit string,
 	case "P":
 		fallthrough
 	default:
-		typeS = "W"
+		typeS = "P"
 	}
 
 	if (masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))) >= size {

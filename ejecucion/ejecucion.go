@@ -105,6 +105,7 @@ func rmdisk() {
 	parser("CADENA O RUTA")
 
 	fmt.Println(">> ¿Esta seguro de que desea eliminar el disco de forma permanente?")
+	fmt.Print(">> ")
 	if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
 		acciones.EliminarDisco(ruta)
 		fmt.Println(">> Disco eliminado")
