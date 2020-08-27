@@ -83,7 +83,7 @@ func paramsMKDISK(s bool, p bool, n bool, u bool) {
 		s = true
 		parser("-SIZE")
 		parser("ASIGNACION")
-		parser("ENTERO")
+		tamanioDisco()
 	case "-PATH":
 		if p == true {
 			panic("'ERROR PARAMETRO DUPLICADO'")
@@ -130,7 +130,7 @@ func paramsFDISK(s bool, p bool, u bool, t bool,
 		s = true
 		parser("-SIZE")
 		parser("ASIGNACION")
-		parser("ENTERO")
+		tamanioDisco()
 	case "-PATH":
 		if p == true {
 			panic("'ERROR PARAMETRO DUPLICADO'")
@@ -189,16 +189,24 @@ func paramsFDISK(s bool, p bool, u bool, t bool,
 		a = true
 		parser("-ADD")
 		parser("ASIGNACION")
-		parser("ID")
+		tamanioDisco()
 	default:
 		mensajePanic("(-SIZE | -PATH | -NAME | -UNIT " +
-			"| -TYPE | -FIT | -DELETE | -NAME | -ADD)")
+			"| -TYPE | -FIT | -DELETE | -ADD)")
 	}
 
 	if preAnalisis.GetTipo() != "EOF" {
 		paramsFDISK(s, p, u, t, f, d, n, a)
 	} else {
-		if !s || !p || !n {
+		if a || d {
+			if !p || !n {
+				mensajePanic("PARAMETROS OBLIGATORIOS")
+			}
+
+			if f || t || s || (u && d) /*|| (a && d)*/ {
+				panic(">> PARAMETROS NO ESPERADOS")
+			}
+		} else if !s || !p || !n {
 			mensajePanic("PARAMETROS OBLIGATORIOS")
 		}
 	}
@@ -214,6 +222,17 @@ func path() {
 		parser("CADENA")
 	default:
 		mensajePanic("(RUTA | \"RUTA\")")
+	}
+}
+
+func tamanioDisco() {
+	switch preAnalisis.GetTipo() {
+	case "ENTERO":
+		parser("ENTERO")
+	case "DECIMAL":
+		parser("DECIMAL")
+	default:
+		mensajePanic("(ENTERO | \"DECIMAL\")")
 	}
 }
 
