@@ -81,11 +81,11 @@ func TablaDisco(masterBootR mbr.MBR) {
 func graficar(filename string, data string) {
 	crearDot(filename, data)
 	compilarDot(filename)
-	abrirGrafico(filename)
+	// abrirGrafico(filename)
 }
 
 func crearDot(filename string, data string) {
-	err := ioutil.WriteFile(filename+".dot", []byte(data), 664)
+	err := ioutil.WriteFile(filename+".dot", []byte(data), 0777)
 	if err != nil {
 		panic(err)
 	}
