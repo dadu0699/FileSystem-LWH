@@ -11,14 +11,14 @@ type EBR struct {
 }
 
 // Inicializar Recibe un puntero EBR para ser modificado.
-func (e *EBR) Inicializar(Estado byte, Fit byte, Inicio int64, Tamanio int64,
-	Siguiente int64, Nombre string) {
-	e.Estado = Estado
-	e.Fit = Fit
-	e.Inicio = Inicio
-	e.Tamanio = Tamanio
-	e.Siguiente = Siguiente
-	copy(e.Nombre[:], Nombre)
+func (e *EBR) Inicializar(estado byte, fit byte, inicio int64, tamanio int64,
+	siguiente int64, nombre string) {
+	e.Estado = estado
+	e.Fit = fit
+	e.Inicio = inicio
+	e.Tamanio = tamanio
+	e.Siguiente = siguiente
+	copy(e.Nombre[:], nombre)
 }
 
 // GetEstado recibe una copia de EBR ya que no necesita modificarlo.
@@ -27,8 +27,8 @@ func (e EBR) GetEstado() byte {
 }
 
 // SetEstado recibe un puntero EBR para ser modificado.
-func (e *EBR) SetEstado(Estado byte) {
-	e.Estado = Estado
+func (e *EBR) SetEstado(estado byte) {
+	e.Estado = estado
 }
 
 // GetFit retorna el Fit del EBR
@@ -37,8 +37,8 @@ func (e EBR) GetFit() byte {
 }
 
 // SetFit asigna el Fit
-func (e *EBR) SetFit(Fit byte) {
-	e.Fit = Fit
+func (e *EBR) SetFit(fit byte) {
+	e.Fit = fit
 }
 
 // GetInicio retorna la posicion inicial del EBR
@@ -47,8 +47,8 @@ func (e EBR) GetInicio() int64 {
 }
 
 // SetInicio asigna la posicion inicial del EBR
-func (e *EBR) SetInicio(Inicio int64) {
-	e.Inicio = Inicio
+func (e *EBR) SetInicio(inicio int64) {
+	e.Inicio = inicio
 }
 
 // GetTamanio obtiene el tamaño del EBR
@@ -57,8 +57,8 @@ func (e EBR) GetTamanio() int64 {
 }
 
 // SetTamanio asigna el tamaño al EBR
-func (e *EBR) SetTamanio(Tamanio int64) {
-	e.Tamanio = Tamanio
+func (e *EBR) SetTamanio(tamanio int64) {
+	e.Tamanio = tamanio
 }
 
 // GetSiguiente obtiene el Inicio del Siguiente EBR
@@ -67,20 +67,20 @@ func (e EBR) GetSiguiente() int64 {
 }
 
 // SetSiguiente asigna el Inicio del Siguiente EBR
-func (e *EBR) SetSiguiente(Siguiente int64) {
-	e.Siguiente = Siguiente
+func (e *EBR) SetSiguiente(siguiente int64) {
+	e.Siguiente = siguiente
 }
 
 // GetNombre retorna el Nombre del EBR
 func (e EBR) GetNombre() string {
-	Nombre := ""
+	nombre := ""
 	for i := 0; i < len(e.Nombre); i++ {
-		Nombre += string(e.Nombre[i])
+		nombre += string(e.Nombre[i])
 	}
-	return Nombre
+	return nombre
 }
 
 // SetNombre asigna el Nombre al EBR
-func (e *EBR) SetNombre(Nombre string) {
-	copy(e.Nombre[:], Nombre)
+func (e *EBR) SetNombre(nombre string) {
+	copy(e.Nombre[:], nombre)
 }

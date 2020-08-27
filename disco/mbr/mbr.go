@@ -15,16 +15,16 @@ type MBR struct {
 }
 
 // Inicializar recibe un puntero MBR para ser modificado.
-func (m *MBR) Inicializar(Tamanio int64) {
-	m.Tamanio = Tamanio
+func (m *MBR) Inicializar(tamanio int64) {
+	m.Tamanio = tamanio
 	fecha := time.Now().Format("01-02-2006 15:04:05")
 	copy(m.FechaCreacion[:], fecha)
 	m.DiskSignature = rand.Int63n(1000)
 }
 
 // SetTamanio recibe un puntero MBR para ser modificado.
-func (m *MBR) SetTamanio(Tamanio int64) {
-	m.Tamanio = Tamanio
+func (m *MBR) SetTamanio(tamanio int64) {
+	m.Tamanio = tamanio
 }
 
 // GetTamanio recibe una copia de MBR ya que no necesita modificarlo.
@@ -38,8 +38,8 @@ func (m MBR) GetFecha() string {
 }
 
 // SetDiskSignature asigna el número random, que identificará de forma única a cada disco
-func (m *MBR) SetDiskSignature(DiskSignature int64) {
-	m.DiskSignature = DiskSignature
+func (m *MBR) SetDiskSignature(diskSignature int64) {
+	m.DiskSignature = diskSignature
 }
 
 // GetDiskSignature devuelve el número random

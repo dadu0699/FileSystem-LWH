@@ -3,6 +3,8 @@ package grafica
 import (
 	"Sistema-de-archivos-LWH/disco/mbr"
 	"fmt"
+	"io/ioutil"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -73,5 +75,44 @@ func TablaDisco(masterBootR mbr.MBR) {
 	}
 
 	auxiliar.WriteString("\n\t\t</table>>];}")
-	fmt.Println(auxiliar.String())
+	graficar("informacionDisco", auxiliar.String())
+}
+
+func graficar(filename string, data string) {
+	crearDot(filename, data)
+	compilarDot(filename)
+	abrirGrafico(filename)
+}
+
+func crearDot(filename string, data string) {
+	err := ioutil.WriteFile(filename+".dot", []byte(data), 664)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func compilarDot(filename string) {
+	comando := string("dot -Tpng " + filename + ".dot -o " + filename + ".png")
+
+	args := strings.Split(comando, " ")
+	cmd := exec.Command(args[0], args[1:]...)
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(b)
+}
+
+func abrirGrafico(filename string) {
+	comando := string(filename + ".png")
+
+	args := strings.Split(comando, " ")
+	cmd := exec.Command(args[0], args[1:]...)
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(b)
 }

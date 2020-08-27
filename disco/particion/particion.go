@@ -1,6 +1,8 @@
 package particion
 
-import "strings"
+import (
+	"strings"
+)
 
 // Particion modelo de la estructura
 type Particion struct {
@@ -13,14 +15,17 @@ type Particion struct {
 }
 
 // Inicializar Recibe un puntero Particion para ser modificado.
-func (p *Particion) Inicializar(Estado byte, Tipo byte, Fit byte, Inicio int64,
-	Tamanio int64, Nombre string) {
-	p.Estado = Estado
-	p.Tipo = Tipo
-	p.Fit = Fit
-	p.Inicio = Inicio
-	p.Tamanio = Tamanio
-	copy(p.Nombre[:], Nombre)
+func (p *Particion) Inicializar(estado byte, tipo byte, fit byte, inicio int64,
+	tamanio int64, nombre string) {
+	p.Estado = estado
+	p.Tipo = tipo
+	p.Fit = fit
+	p.Inicio = inicio
+	p.Tamanio = tamanio
+	copy(p.Nombre[:], nombre)
+	for i := len(nombre); i < 16; i++ {
+		p.Nombre[i] = byte(" "[0])
+	}
 }
 
 // GetEstado recibe una copia de Particion ya que no necesita modificarlo.
@@ -29,28 +34,28 @@ func (p Particion) GetEstado() byte {
 }
 
 // SetEstado recibe un puntero Particion para ser modificado.
-func (p *Particion) SetEstado(Estado byte) {
-	p.Estado = Estado
+func (p *Particion) SetEstado(estado byte) {
+	p.Estado = estado
 }
 
-// GetTipo retorna el valor de Tipo
+// GetTipo retorna el valor de tipo
 func (p Particion) GetTipo() byte {
 	return p.Tipo
 }
 
-// SetTipo asigna el Tipo
-func (p *Particion) SetTipo(Tipo byte) {
-	p.Tipo = Tipo
+// SetTipo asigna el tipo
+func (p *Particion) SetTipo(tipo byte) {
+	p.Tipo = tipo
 }
 
-// GetFit retorna el Fit de la particion
+// GetFit retorna el fit de la particion
 func (p Particion) GetFit() byte {
 	return p.Fit
 }
 
-// SetFit asigna el Fit
-func (p *Particion) SetFit(Fit byte) {
-	p.Fit = Fit
+// SetFit asigna el fit
+func (p *Particion) SetFit(fit byte) {
+	p.Fit = fit
 }
 
 // GetInicio retorna la posicion inicial de la particion
@@ -59,8 +64,8 @@ func (p Particion) GetInicio() int64 {
 }
 
 // SetInicio asigna la posicion inicial de la particion
-func (p *Particion) SetInicio(Inicio int64) {
-	p.Inicio = Inicio
+func (p *Particion) SetInicio(inicio int64) {
+	p.Inicio = inicio
 }
 
 // GetTamanio obtiene el tamaño de la particion
@@ -69,20 +74,22 @@ func (p Particion) GetTamanio() int64 {
 }
 
 // SetTamanio asigna el tamaño a la particion
-func (p *Particion) SetTamanio(Tamanio int64) {
-	p.Tamanio = Tamanio
+func (p *Particion) SetTamanio(tamanio int64) {
+	p.Tamanio = tamanio
 }
 
-// GetNombre retorna el Nombre de la particion
+// GetNombre retorna el nombre de la particion
 func (p Particion) GetNombre() string {
-	Nombre := ""
+	nombre := ""
 	for i := 0; i < len(p.Nombre); i++ {
-		Nombre += string(p.Nombre[i])
+		if p.Nombre[i] != 0 {
+			nombre += string(p.Nombre[i])
+		}
 	}
-	return strings.TrimSpace(Nombre)
+	return strings.TrimSpace(nombre)
 }
 
-// SetNombre asigna el Nombre a la particion
-func (p *Particion) SetNombre(Nombre string) {
-	copy(p.Nombre[:], Nombre)
+// SetNombre asigna el nombre a la particion
+func (p *Particion) SetNombre(nombre string) {
+	copy(p.Nombre[:], nombre)
 }

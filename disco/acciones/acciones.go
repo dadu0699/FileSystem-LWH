@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 	"unsafe"
 )
@@ -167,43 +166,34 @@ func CrearParticion(size int64, path string, name string, unit string,
 				siguiente := particionActivaSiguiente(i)
 				if anterior == -1 && siguiente == -1 {
 					particionAuxiliar.SetTamanio(masterBootR.Tamanio - posInicial)
-					particionAuxiliar.SetInicio(posInicial)
+					particionAuxiliar.SetInicio(posInicial + 1) // +1
 				} else if anterior == -1 && siguiente != -1 {
 					particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - posInicial)
-					particionAuxiliar.SetInicio(posInicial)
+					particionAuxiliar.SetInicio(posInicial + 1) // +1
 				} else if anterior != -1 && siguiente == -1 {
 					particionAuxiliar.SetTamanio(masterBootR.Tamanio -
 						(masterBootR.GetParticion(anterior).GetInicio() +
 							masterBootR.GetParticion(anterior).GetTamanio()))
 					particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
-						masterBootR.GetParticion(anterior).GetTamanio())
+						masterBootR.GetParticion(anterior).GetTamanio() + 1) // +1
 				}
 				particionesLibres = append(particionesLibres, particionAuxiliar)
 			}
 		}
 
-		switch fit {
+		/*switch fit {
 		case "B":
 			// Ordenamiento de la lista de particiones libres de menor a mayor
 			sort.SliceStable(particionesLibres, func(i, j int) bool {
 				return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
 			})
 
-		/*case "F":
-		for _, partX := range particionesLibres {
-			if partX.Tamanio >= size {
-				partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
-				return
-			}
-		}
-		panic(">> LA PARTICION ES MUY GRANDE")*/
-
 		case "W":
 			// Ordenamiento de la lista de particiones libres de mayor a menor
 			sort.SliceStable(particionesLibres, func(i, j int) bool {
 				return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
 			})
-		}
+		}*/
 
 		for i := 0; i < len(particionesLibres); i++ {
 			var partX *particion.Particion
