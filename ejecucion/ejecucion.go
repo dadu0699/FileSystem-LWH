@@ -46,8 +46,28 @@ func iniciar() {
 		fdisk()
 
 	case "MOUNT":
-
 	case "UNMOUNT":
+	case "MKFS":
+	case "LOGIN":
+	case "MKGRP":
+	case "RMGRP":
+	case "MKUSR":
+	case "RMUSR":
+	case "CHMOD":
+	case "MKFILE":
+	case "CAT":
+	case "RM":
+	case "EDIT":
+	case "REN":
+	case "MKDIR":
+	case "CP":
+	case "MV":
+	case "FIND":
+	case "CHOWN":
+	case "CHGRP":
+	case "LOSS":
+	case "RECOVERY":
+	case "REP":
 	}
 }
 
@@ -58,38 +78,45 @@ func mkdisk() {
 	unidad := ""
 
 	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
 		switch preAnalisis.GetTipo() {
-		case "-SIZE": // OBLIGATORIO
-			parser("-SIZE")
-			parser("ASIGNACION")
+		case "SIZE": // OBLIGATORIO
+			parser("SIZE")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 
 			i, _ := strconv.ParseInt(preAnalisis.GetValor(), 10, 64)
 			tamanio = i
 			if tamanio <= 0 {
-				panic("SOLO SE ACEPTAN NUMEROS ENTEROS POSITIVOS DE TAMAÑO")
+				panic(">> SOLO SE ACEPTAN NUMEROS ENTEROS POSITIVOS")
 			}
 			parser("ENTERO")
 
-		case "-PATH": // OBLIGATORIO
-			parser("-PATH")
-			parser("ASIGNACION")
+		case "PATH": // OBLIGATORIO
+			parser("PATH")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			ruta = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 			parser("CADENA O RUTA")
 
-		case "-NAME": // OBLIGATORIO
-			parser("-NAME")
-			parser("ASIGNACION")
+		case "NAME": // OBLIGATORIO
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			nombre = preAnalisis.GetValor() + ".dsk"
 			parser("ID")
-			parser(".DSK")
+			parser("SIMBOLO_PUNTO")
+			parser("DSK")
 
-		case "-UNIT":
-			parser("-UNIT")
-			parser("ASIGNACION")
+		case "UNIT":
+			parser("UNIT")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			unidad = preAnalisis.GetValor()
 			if !strings.EqualFold(unidad, "K") &&
 				!strings.EqualFold(unidad, "M") {
-				panic("PARAMETRO DE UNIDAD INCORRECTO")
+				panic(">> PARAMETRO DE 'UNIDAD' INCORRECTO SE ESPERABA (K | M)")
 			}
 			parser("ID")
 		}
@@ -98,8 +125,10 @@ func mkdisk() {
 }
 
 func rmdisk() {
-	parser("-PATH")
-	parser("ASIGNACION")
+	parser("SIMBOLO_MENOS")
+	parser("PATH")
+	parser("SIMBOLO_MENOS")
+	parser("SIMBOLO_MAYOR")
 
 	ruta := strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 	parser("CADENA O RUTA")
@@ -123,75 +152,85 @@ func fdisk() {
 	delelteS := ""
 
 	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
 		switch preAnalisis.GetTipo() {
-		case "-SIZE": // OBLIGATORIO
-			parser("-SIZE")
-			parser("ASIGNACION")
+		case "SIZE": // OBLIGATORIO
+			parser("SIZE")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			i, _ := strconv.ParseInt(preAnalisis.GetValor(), 10, 64)
 			tamanio = i
 			if tamanio <= 0 {
-				panic("SOLO SE ACEPTAN NUMEROS ENTEROS POSITIVOS DE TAMAÑO")
+				panic(">> SOLO SE ACEPTAN NUMEROS ENTEROS POSITIVOS")
 			}
 			parser("ENTERO")
 
-		case "-UNIT":
-			parser("-UNIT")
-			parser("ASIGNACION")
+		case "UNIT":
+			parser("UNIT")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			unidad = preAnalisis.GetValor()
 			if !strings.EqualFold(unidad, "B") &&
 				!strings.EqualFold(unidad, "K") &&
 				!strings.EqualFold(unidad, "M") {
-				panic("PARAMETRO DE UNIDAD INCORRECTO")
+				panic(">> PARAMETRO DE 'UNIDAD' INCORRECTO SE ESPERABA (B | K | M)")
 			}
 			parser("ID")
 
-		case "-PATH": // OBLIGATORIO
-			parser("-PATH")
-			parser("ASIGNACION")
+		case "PATH": // OBLIGATORIO
+			parser("PATH")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			ruta = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 			parser("CADENA O RUTA")
 
-		case "-TYPE":
-			parser("-TYPE")
-			parser("ASIGNACION")
+		case "TYPE":
+			parser("TYPE")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			tipo = preAnalisis.GetValor()
 			if !strings.EqualFold(tipo, "P") &&
 				!strings.EqualFold(tipo, "E") &&
 				!strings.EqualFold(tipo, "L") {
-				panic("PARAMETRO DE TIPO INCORRECTO")
+				panic(">> PARAMETRO DE 'TIPO' INCORRECTO SE ESPERABA (P | E | L)")
 			}
 			parser("ID")
 
-		case "-FIT":
-			parser("-FIT")
-			parser("ASIGNACION")
+		case "FIT":
+			parser("FIT")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			fit = preAnalisis.GetValor()
 			if !strings.EqualFold(fit, "BF") &&
 				!strings.EqualFold(fit, "FF") &&
 				!strings.EqualFold(fit, "WF") {
-				panic("PARAMETRO DE FIT INCORRECTO")
+				panic(">> PARAMETRO DE 'FIT' INCORRECTO SE ESPERABA (BD | FF | WF)")
 			}
 			parser("ID")
 
-		case "-DELETE":
-			parser("-DELETE")
-			parser("ASIGNACION")
+		case "DELETE":
+			parser("DELETE")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			delelteS = preAnalisis.GetValor()
 			if !strings.EqualFold(delelteS, "Full") &&
 				!strings.EqualFold(delelteS, "Fast") {
-				panic("PARAMETRO DE DELETE INCORRECTO")
+				panic(">> PARAMETRO DE 'DELETE' INCORRECTO SE ESPERABA (FULL | FAST)")
 			}
 			parser("ID")
 
-		case "-NAME": // OBLIGATORIO
-			parser("-NAME")
-			parser("ASIGNACION")
+		case "NAME": // OBLIGATORIO
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			nombre = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 			parser("ID")
 
-		case "-ADD":
-			parser("-ADD")
-			parser("ASIGNACION")
+		case "ADD":
+			parser("ADD")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
 			i, _ := strconv.ParseInt(preAnalisis.GetValor(), 10, 64)
 			addT = i
 			parser("ENTERO")

@@ -1,0 +1,42 @@
+digraph G{
+	tbl [ 
+	shape=plaintext 
+	label=<
+		<table border='0' cellborder='1' color='black' cellspacing='0'>
+			<tr><td>Nombre</td><td>Valor</td></tr>
+			<tr><td>MBR_TAMANIO</td><td>5242880</td></tr>
+			<tr><td>MBR_FECHA_CREACION</td><td>08-30-2020 01:59:32</td></tr>
+			<tr><td>MBR_DISK_SIGNATURE</td><td>410</td></tr>
+			<tr><td cellpadding='0' colspan='2'><table color='orange' cellspacing='0'>
+				<tr><td>PART_ESTADO_1</td><td>1</td></tr>
+				<tr><td>PART_TIPO_1</td><td>P</td></tr>
+				<tr><td>PART_FIT_1</td><td>W</td></tr>
+				<tr><td>PART_INICIO_1</td><td>201</td></tr>
+				<tr><td>PART_TAMANIO_1</td><td>20480</td></tr>
+				<tr><td>PART_NOMBRE_1</td><td>Part1</td></tr>
+			</table></td></tr>
+			<tr><td cellpadding='0' colspan='2'><table color='orange' cellspacing='0'>
+				<tr><td>PART_ESTADO_2</td><td>1</td></tr>
+				<tr><td>PART_TIPO_2</td><td>P</td></tr>
+				<tr><td>PART_FIT_2</td><td>W</td></tr>
+				<tr><td>PART_INICIO_2</td><td>20682</td></tr>
+				<tr><td>PART_TAMANIO_2</td><td>18432</td></tr>
+				<tr><td>PART_NOMBRE_2</td><td>Part2</td></tr>
+			</table></td></tr>
+			<tr><td cellpadding='0' colspan='2'><table color='orange' cellspacing='0'>
+				<tr><td>PART_ESTADO_3</td><td>1</td></tr>
+				<tr><td>PART_TIPO_3</td><td>P</td></tr>
+				<tr><td>PART_FIT_3</td><td>W</td></tr>
+				<tr><td>PART_INICIO_3</td><td>39115</td></tr>
+				<tr><td>PART_TAMANIO_3</td><td>103424</td></tr>
+				<tr><td>PART_NOMBRE_3</td><td>Part3</td></tr>
+			</table></td></tr>
+			<tr><td cellpadding='0' colspan='2'><table color='orange' cellspacing='0'>
+				<tr><td>PART_ESTADO_4</td><td>1</td></tr>
+				<tr><td>PART_TIPO_4</td><td>P</td></tr>
+				<tr><td>PART_FIT_4</td><td>W</td></tr>
+				<tr><td>PART_INICIO_4</td><td>142540</td></tr>
+				<tr><td>PART_TAMANIO_4</td><td>272384</td></tr>
+				<tr><td>PART_NOMBRE_4</td><td>Part4</td></tr>
+			</table></td></tr>
+		</table>>];}
