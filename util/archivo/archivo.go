@@ -26,8 +26,7 @@ func Leer(ruta string) {
 
 	scanner := bufio.NewScanner(archivo)
 	for scanner.Scan() {
-		linea := scanner.Text()
-		if linea != "" {
+		if linea := scanner.Text(); linea != "" {
 
 			for strings.Contains(linea, "\\*") {
 				linea = strings.ReplaceAll(linea, "\\*", "")
@@ -44,12 +43,11 @@ func Leer(ruta string) {
 				fmt.Println()
 			} else if len(listaTokens) > 0 {
 				if listaTokens[0].GetTipo() == "EXEC" {
-					if len(listaTokens) == 4 && listaTokens[1].GetTipo() == "-PATH" &&
-						listaTokens[2].GetTipo() == "ASIGNACION" &&
-						(listaTokens[3].GetTipo() == "RUTA" ||
-							listaTokens[3].GetTipo() == "CADENA") {
-
-						Leer(listaTokens[3].GetValor())
+					if len(listaTokens) == 6 && listaTokens[1].GetTipo() == "SIMBOLO_MENOS" &&
+						listaTokens[2].GetTipo() == "PATH" && listaTokens[3].GetTipo() == "SIMBOLO_MENOS" &&
+						listaTokens[4].GetTipo() == "SIMBOLO_MAYOR" && (listaTokens[5].GetTipo() == "RUTA" ||
+						listaTokens[5].GetTipo() == "CADENA") {
+						Leer(listaTokens[5].GetValor())
 					} else {
 						panic(">> 'ERROR DE INSTRUCCION'\n")
 					}

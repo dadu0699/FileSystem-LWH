@@ -181,6 +181,10 @@ func CrearParticion(size int64, path string, name string, unit string,
 			}
 		}
 
+		if len(particionesLibres) == 0 {
+			panic(">> YA EXISTEN 4 PARTICIONES")
+		}
+
 		/*switch fit {
 		case "B":
 			// Ordenamiento de la lista de particiones libres de menor a mayor

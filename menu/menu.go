@@ -29,11 +29,11 @@ func Interfaz() {
 				fmt.Println()
 			} else if len(listaTokens) > 0 {
 				if listaTokens[0].GetTipo() == "EXEC" {
-					if len(listaTokens) == 4 && listaTokens[1].GetTipo() == "-PATH" &&
-						listaTokens[2].GetTipo() == "ASIGNACION" &&
-						(listaTokens[3].GetTipo() == "RUTA" ||
-							listaTokens[3].GetTipo() == "CADENA") {
-						archivo.Leer(listaTokens[3].GetValor())
+					if len(listaTokens) == 6 && listaTokens[1].GetTipo() == "SIMBOLO_MENOS" &&
+						listaTokens[2].GetTipo() == "PATH" && listaTokens[3].GetTipo() == "SIMBOLO_MENOS" &&
+						listaTokens[4].GetTipo() == "SIMBOLO_MAYOR" && (listaTokens[5].GetTipo() == "RUTA" ||
+						listaTokens[5].GetTipo() == "CADENA") {
+						archivo.Leer(listaTokens[5].GetValor())
 					} else {
 						fmt.Println(">> 'ERROR DE INSTRUCCION'")
 						fmt.Println()

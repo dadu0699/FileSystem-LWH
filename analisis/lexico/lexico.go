@@ -47,9 +47,6 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 			} else if esDigito(caracter) { // Digitos enteros o flotantes
 				estado = 2
 				auxiliar.WriteString(caracter)
-			} else if caracter == "-" { // Parametros
-				estado = 3
-				auxiliar.WriteString(caracter)
 			} else if caracter == "\"" { // Cadenas
 				estado = 4
 				auxiliar.WriteString(caracter)
@@ -74,9 +71,6 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 					estado = 9
 					auxiliar.WriteString(caracter)
 				}
-			} else if caracter == "." { // Extension Archivos
-				estado = 10
-				auxiliar.WriteString(caracter)
 			} else if !agregarSimbolo(caracter) {
 				agregarError(caracter)
 				estado = 0
@@ -98,22 +92,6 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 				auxiliar.WriteString(caracter)
 			} else {
 				agregarToken("ENTERO")
-				i--
-			}
-		case 3:
-			if esLetra(caracter) {
-				estado = 7
-				auxiliar.WriteString(caracter)
-			} else if esDigito(caracter) {
-				estado = 2
-				auxiliar.WriteString(caracter)
-			} else if caracter == ">" {
-				auxiliar.WriteString(caracter)
-				agregarToken("ASIGNACION")
-			} else {
-				agregarError(string(entrada[i-1]))
-				auxiliar.Reset()
-				estado = 0
 				i--
 			}
 		case 4:
@@ -148,14 +126,6 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 				}
 				i--
 			}
-		case 7:
-			if esLetra(caracter) {
-				// estado = 7
-				auxiliar.WriteString(caracter)
-			} else {
-				agregarParametro()
-				i--
-			}
 		case 8:
 			if !esEspacio(caracter) {
 				// estado = 8
@@ -173,14 +143,6 @@ func Scanner(entrada string) ([]token.Token, []errort.ErrorT) {
 				columna = 1
 				fila++
 			}
-		case 10:
-			if esLetra(caracter) {
-				// estado = 10
-				auxiliar.WriteString(caracter)
-			} else {
-				agregarExtension()
-				i--
-			}
 		}
 		columna++
 	}
@@ -192,6 +154,22 @@ func agregarSimbolo(caracter string) bool {
 	case "?":
 		auxiliar.WriteString(caracter)
 		agregarToken("SIMBOLO_INTERROGACION")
+		return true
+	case "*":
+		auxiliar.WriteString(caracter)
+		agregarToken("SIMBOLO_ASTERISCO")
+		return true
+	case "-":
+		auxiliar.WriteString(caracter)
+		agregarToken("SIMBOLO_MENOS")
+		return true
+	case ">":
+		auxiliar.WriteString(caracter)
+		agregarToken("SIMBOLO_MAYOR")
+		return true
+	case ".":
+		auxiliar.WriteString(caracter)
+		agregarToken("SIMBOLO_PUNTO")
 		return true
 	default:
 		return false
@@ -254,74 +232,60 @@ func agregarComando() {
 		agregarToken("RMUSR")
 	case "unmount":
 		agregarToken("UNMOUNT")
+
+	// PARAMETROS
+	case "add":
+		agregarToken("ADD")
+	case "cont":
+		agregarToken("CONT")
+	case "delete":
+		agregarToken("DELETE")
+	case "dest":
+		agregarToken("DEST")
+	case "file":
+		agregarToken("FILEN")
+	case "fit":
+		agregarToken("FIT")
+	case "grp":
+		agregarToken("GRP")
+	case "id":
+		agregarToken("IDN")
+	case "name":
+		agregarToken("NAME")
+	case "nombre": // Revisar
+		agregarToken("NOMBRE")
+	case "p":
+		agregarToken("P")
+	case "path":
+		agregarToken("PATH")
+	case "pwd":
+		agregarToken("PWD")
+	case "r":
+		agregarToken("R")
+	case "rf":
+		agregarToken("RF")
+	case "ruta":
+		agregarToken("RUTA")
+	case "size":
+		agregarToken("SIZE")
+	case "tipo": // Revisar
+		agregarToken("TIPO")
+	case "type":
+		agregarToken("TYPE")
+	case "ugo":
+		agregarToken("UGO")
+	case "unit":
+		agregarToken("UNIT")
+	case "usr":
+		agregarToken("USR")
+
+	// EXTENCIONES
+	case "mia":
+		agregarToken("MIA")
+	case "dsk":
+		agregarToken("DSK")
 	default:
 		agregarToken("ID")
-	}
-}
-
-func agregarParametro() {
-	switch strings.ToLower(auxiliar.String()) {
-	case "-add":
-		agregarToken("-ADD")
-	case "-cont":
-		agregarToken("-CONT")
-	case "-delete":
-		agregarToken("-DELETE")
-	case "-dest":
-		agregarToken("-DEST")
-	case "-filen":
-		agregarToken("-FILEN")
-	case "-fit":
-		agregarToken("-FIT")
-	case "-grp":
-		agregarToken("-GRP")
-	case "-id":
-		agregarToken("-ID")
-	case "-name":
-		agregarToken("-NAME")
-	case "-nombre": // Revisar
-		agregarToken("-NOMBRE")
-	case "-p":
-		agregarToken("-P")
-	case "-path":
-		agregarToken("-PATH")
-	case "-pwd":
-		agregarToken("-PWD")
-	case "-r":
-		agregarToken("-R")
-	case "-rf":
-		agregarToken("-RF")
-	case "-ruta":
-		agregarToken("-RUTA")
-	case "-size":
-		agregarToken("-SIZE")
-	case "-tipo": // Revisar
-		agregarToken("-TIPO")
-	case "-type":
-		agregarToken("-TYPE")
-	case "-ugo":
-		agregarToken("-UGO")
-	case "-unit":
-		agregarToken("-UNIT")
-	case "-usr":
-		agregarToken("-USR")
-	default:
-		agregarError(auxiliar.String())
-		auxiliar.Reset()
-		estado = 0
-	}
-}
-
-func agregarExtension() {
-	switch auxiliar.String() {
-	case ".mia":
-		agregarToken(".MIA")
-	case ".dsk":
-		agregarToken(".DSK")
-	default:
-		agregarError(auxiliar.String())
-		auxiliar.Reset()
-		estado = 0
 	}
 }
 
