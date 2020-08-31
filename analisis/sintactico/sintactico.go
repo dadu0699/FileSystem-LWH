@@ -74,7 +74,7 @@ func instruccion() {
 	case "COMENTARIO":
 		parser("COMENTARIO")
 	case "PAUSE":
-		parser("PAUSE") // util.LecturaTeclado()
+		parser("PAUSE")
 	case "MKDISK":
 		parser("MKDISK")
 		paramsMKDISK()
@@ -89,14 +89,41 @@ func instruccion() {
 		parser("FDISK")
 		paramsFDISK()
 	case "MOUNT":
+		parser("MOUNT")
+		paramsMOUNT()
 	case "UNMOUNT":
+		parser("UNMOUNT")
+		parser("SIMBOLO_MENOS")
+		parser("IDN")
+		parser("ENTERO")
+		parser("SIMBOLO_MENOS")
+		parser("SIMBOLO_MAYOR")
+		parser("ID")
+		listadoIDN()
 	case "MKFS":
+		parser("MKFS")
+		paramsMKFS()
 	case "LOGIN":
+		parser("LOGIN")
+		paramsLOGIN()
+	case "LOGOUT":
+		parser("LOGOUT")
 	case "MKGRP":
+		parser("MKGRP")
+		paramsMKGRP()
 	case "RMGRP":
+		parser("RMGRP")
+		paramsRMGRP()
 	case "MKUSR":
+		parser("MKUSR")
+		paramsMKUSR()
 	case "RMUSR":
+		parser("RMUSR")
+		paramsRMUSR()
 	case "CHMOD":
+		parser("CHMOD")
+		paramsCHMOD()
+
 	case "MKFILE":
 	case "CAT":
 	case "RM":
@@ -272,14 +299,14 @@ func paramsFDISK() {
 			parser("NAME")
 			parser("SIMBOLO_MENOS")
 			parser("SIMBOLO_MAYOR")
-			nombresArchivo()
+			identificadores()
 
 		case "ADD":
 			if addT == true {
-				panic(">> ERROR PARAMETRO 'DELTE' DUPLICADO")
+				panic(">> ERROR PARAMETRO 'ADD' DUPLICADO")
 			}
 			if deleteT == true {
-				panic(">> ERROR PARAMETROS 'DELTE' Y 'ADD INCOMPATIBLES")
+				panic(">> ERROR PARAMETROS 'ADD' Y 'DELETE INCOMPATIBLES")
 			}
 			addT = true
 			parser("ADD")
@@ -305,7 +332,6 @@ func paramsFDISK() {
 	} else if !sizeT || !pathT || !nameT {
 		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-SIZE | -PATH | -NAME)")
 	}
-
 }
 
 func tamanioDisco() {
@@ -320,7 +346,7 @@ func tamanioDisco() {
 	}
 }
 
-func nombresArchivo() {
+func identificadores() {
 	switch preAnalisis.GetTipo() {
 	case "ID":
 		parser("ID")
@@ -329,6 +355,349 @@ func nombresArchivo() {
 	default:
 		err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (NOMBRE | \"NOMBRE\")"
 		panic(err)
+	}
+}
+
+func paramsMOUNT() {
+	pathT := false
+	nameT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "PATH":
+			if pathT == true {
+				panic(">> 'ERROR PARAMETRO 'PATH' DUPLICADO")
+			}
+			pathT = true
+			parser("PATH")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			pathParams()
+
+		case "NAME":
+			if nameT == true {
+				panic(">> ERROR PARAMETRO 'NAME' DUPLICADO")
+			}
+			nameT = true
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+			parser("SIMBOLO_PUNTO")
+			parser("DSK")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-SIZE | -PATH | -NAME | -UNIT)"
+			panic(err)
+		}
+	}
+
+	if (pathT || nameT) && (!pathT || !nameT) {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-PATH | -NAME)")
+	}
+}
+
+func listadoIDN() {
+	switch preAnalisis.GetTipo() {
+	case "-":
+		parser("-")
+		parser("IDN")
+		parser("ENTERO")
+		parser("SIMBOLO_MENOS")
+		parser("SIMBOLO_MAYOR")
+		parser("ID")
+		listadoIDN()
+	}
+}
+
+func paramsMKFS() {
+	idT := false
+	typeT := false
+	addT := false
+	unitT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		case "TYPE":
+			if typeT == true {
+				panic(">> 'ERROR PARAMETRO 'TYPE' DUPLICADO")
+			}
+			typeT = true
+			parser("TYPE")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		case "ADD":
+			if addT == true {
+				panic(">> ERROR PARAMETRO 'ADD' DUPLICADO")
+			}
+			addT = true
+			parser("ADD")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			tamanioDisco()
+
+		case "UNIT":
+			if unitT == true {
+				panic(">> ERROR PARAMETRO 'UNIT' DUPLICADO")
+			}
+			unitT = true
+			parser("UNIT")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID | -TYPE | -ADD | -UNIT)"
+			panic(err)
+		}
+	}
+
+	if !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID)")
+	}
+}
+
+func paramsLOGIN() {
+	usrT := false
+	pwdT := false
+	idT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "USR":
+			if usrT == true {
+				panic(">> ERROR PARAMETRO 'USR' DUPLICADO")
+			}
+			usrT = true
+			parser("USR")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		case "PWD":
+			if pwdT == true {
+				panic(">> 'ERROR PARAMETRO 'PWD' DUPLICADO")
+			}
+			pwdT = true
+			parser("PWD")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-USR | -PWD | -ID)"
+			panic(err)
+		}
+	}
+
+	if !usrT || !pwdT || !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-USR | -PWD | -ID)")
+	}
+}
+
+func paramsMKGRP() {
+	idT := false
+	nameT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		case "NAME":
+			if nameT == true {
+				panic(">> ERROR PARAMETRO 'NAME' DUPLICADO")
+			}
+			nameT = true
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID | -NAME)"
+			panic(err)
+		}
+	}
+
+	if !nameT || !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID | -NAME)")
+	}
+}
+
+func paramsRMGRP() {
+	idT := false
+	nameT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		case "NAME":
+			if nameT == true {
+				panic(">> ERROR PARAMETRO 'NAME' DUPLICADO")
+			}
+			nameT = true
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID | -NAME)"
+			panic(err)
+		}
+	}
+
+	if !nameT || !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID | -NAME)")
+	}
+}
+
+func paramsMKUSR() {
+	usrT := false
+	pwdT := false
+	idT := false
+	grpT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "USR":
+			if usrT == true {
+				panic(">> ERROR PARAMETRO 'USR' DUPLICADO")
+			}
+			usrT = true
+			parser("USR")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		case "PWD":
+			if pwdT == true {
+				panic(">> 'ERROR PARAMETRO 'PWD' DUPLICADO")
+			}
+			pwdT = true
+			parser("PWD")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		case "GRP":
+			if grpT == true {
+				panic(">> ERROR PARAMETRO 'GRP' DUPLICADO")
+			}
+			grpT = true
+			parser("GRP")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-USR | -PWD | -ID | -GRP)"
+			panic(err)
+		}
+	}
+
+	if !usrT || !pwdT || !idT || grpT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-USR | -PWD | -ID | -GRP)")
+	}
+}
+
+func paramsRMUSR() {
+	usrT := false
+	idT := false
+
+	for preAnalisis.GetTipo() != "EOF" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "USR":
+			if usrT == true {
+				panic(">> ERROR PARAMETRO 'USR' DUPLICADO")
+			}
+			usrT = true
+			parser("USR")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			identificadores()
+
+		case "IDN":
+			if idT == true {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-USR | -ID)"
+			panic(err)
+		}
+	}
+
+	if !usrT || !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-USR | -ID)")
 	}
 }
 

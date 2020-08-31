@@ -97,11 +97,10 @@ func compilarDot(filename string) {
 	args := strings.Split(comando, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 
-	b, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(b)
 }
 
 func abrirGrafico(filename string) {
@@ -110,9 +109,8 @@ func abrirGrafico(filename string) {
 	args := strings.Split(comando, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 
-	b, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(b)
 }
