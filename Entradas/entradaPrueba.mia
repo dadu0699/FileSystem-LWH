@@ -1,3 +1,6 @@
+# exec -path->"./Entradas/entradaPrueba.mia"
+# –
+
 #Crea un disco de 3000 Kb en la carpeta home 
 Mkdisk -size->32 -path->/home/user/ \*
 -name->Disco1.dsk -uniT->k
@@ -22,12 +25,12 @@ fdisk -TyPE->E -path->/home/Disco2.dsk -Unit->K \*
 -name->Particion2 -sizE->56
 #Crea una partición lógica con el mejor ajuste, llamada Particion3,y 
 #de 1 Mb en el Disco3 y asignación contigua
-fdisk -sizE->1 -tipo->L -unit->M -fit->BF \*
--path->/mis discos/Disco3.dsk -name->Particion3
+fdisk -sizE->1 -type->L -unit->M -fit->BF \*
+-path->"/mis discos/Disco3.dsk" -name->Particion3
 #Intenta crear una partición extendida dentro de Disco2 de 200 kb 
 #Debería mostrar error ya que ya existe una partición extendida 
 #dentro de Disco2
-fdisk -tipo->E -path->/home/Disco2.dsk -name->Part3 \*
+fdisk -type->E -path->/home/Disco2.dsk -name->Part3 \*
 -Unit->K -sizE->200
 #Elimina de forma rápida una partición llamada Particion1
 fdisk -delete->fast -name->"Particion1" -path->"/home/Disco1.dsk" 
@@ -39,9 +42,194 @@ fdisk -add->1 -unit->M -path->"/home/mis discos/Disco4.dsk" \*
 -name->"Particion 4"
 
 Pause
+#Monta las particiones de Disco1.dsk
+mount -path->/home/Disco1.dsk -name->Part1 #id->vda1 
+mount -path->/home/Disco2.dsk -name->Part1 #id->vdb1
+mount -path->/home/Disco3.dsk -name->Part2 #id->vdc1 
+mount -path->/home/Disco1.dsk -name->Part2 #id->vda2
+
+PAUSE
 #Desmonta la partición con id vda1 (En Disco1.dsk) 
 unmount -id1->vda1
 #Si no existe, se debe mostrar error 
 unmount -id1->vdx1
 #Desmonta una lista de particiones. 
 unmount -id1->vda1 -id2->vdb2 -id3->vdc1
+
+PAUSE
+#Realiza un formateo rápido con LWH de la "Particion 1" del 
+#Disco1.dsk
+mkfs -id->vda1 -type->fast
+#Realiza un formateo completo con LWH de Particion2 en Disco2.dsk 
+mkfs -id->vdb1
+#Agrega 500 Kb a Particion3 en Disco3.dsk 
+mkfs -add->500 -id->vdc1
+#Agrega 1 Mb a Particion3 en Disco3.dsk 
+Mkfs -add->1 -id->vdc1 -unit->m
+
+#Se loguea en el sistema como usuario root 
+login -usr->root -pwd->201020576 -id->vda1
+login -usr->"mi usuario" -pwd->"mi pwd" \* 
+-id->vda2
+
+Pause
+#Termina la sesión del usuario 
+Logout
+#Si se vuelve a ejecutar deberá mostrar un error 
+#ya que no hay sesión actualmente
+
+PAUSE
+#Crea el grupo usuarios en la partición vda1 
+mkgrp -id->vda1 -name->"usuarios"
+#Debe mostrar mensaje de error ya que el grupo ya existe 
+mkgrp -id->vda1 -name->"usuarios"
+
+PAUSE
+#Elimina el grupo de usuarios en la partición vda1 
+rmgrp -id->vda1 -name->"usuarios"
+#Debe mostrar mensaje de error ya que el grupo no existe porque ya fue eliminado
+rmgrp -id->vda1 -name->"usuarios"
+
+PAUSE
+#Crea el grupo usuarios en la partición vda1
+Mkusr -id->vda1 -usr->"user1" -grp->usuarios -pwd->usuario
+
+PAUSE
+#Elimina el usuario user1 de la partición 
+rmusr -id->vda1 -usr->user
+
+PAUSE
+#Cambia los permisos de la carpeta home recursivamente
+#Todos los archivos o carpetas que tengan /home cambiarán 
+#Por ejemplo si existiera /home/user/docs/a.txt
+#Cambiaría los permisos de las tres carpetas y del archivo 
+chmod -id->vda1 -path->"/home" -R -ugo->764
+#Cambia los permisos de la carpeta home
+#Se debe comprobar que la carpeta home pertenezca al usuario 
+#actual, si no deberá mostrar un mensaje de error.
+chmod -id->vda1 -path->"/home" -ugo->777
+
+PAUSE
+#Crea el archivo a.txt
+#Si no existen las carpetas home user o docs se crean 
+#El tamaño del archivo es de 15 bytes
+#El contenido sería: 012345678901234
+mkFile -SIZE->15 -id->vdb1 -PatH->"/home/user/docs/a.txt" -p
+#Crea "archivo 1.txt" la carpeta "mis documentos" ya debe existir #el tamaño es de 0 bytes
+mkfile -id->vda1 -path->"/home/mis documentos/archivo 1.txt"
+#Crea el archivo b.txt
+#El contenido del archivo será el mismo que el archivo b.txt
+#que se encuentra en el disco duro de la computadora. 
+mkfile -id->vda1 -path->"/home/user/docs/b.txt" -p \* 
+-cont->"/home/Documents/b.txt"
+
+PAUSE
+#Lee el archivo a.txt En la terminal debería mostrar el contenido, en 
+#este ejemplo 01234567890123 
+Cat -file1->"/home/user/docs/a.txt" -Id->vdb1
+#enlazara los archivos a.txt (datos archivo a) b.txt (01234567890123) 
+#c.txt (0123) y debería mostrar el contenido siguiente, cada archivo 
+#va separado por salto de línea
+# datos archivo a
+# 01234567890123
+# 0123
+Cat -file1->"/home/a.txt" -Id->vdb1 -file2->"/home/b.txt" -file3->"/home/c.txt"
+
+PAUSE
+#Elimina el archivo a.txt, b.txt muestra error si no tiene permiso 
+rm -PatH->"/home/user/docs/a.txt" -Id->vdb1
+rm -PatH->"/home/user/docs/b.txt" -Id->vdb1
+#Error por permisos
+#Elimina la carpeta user y todo su contenido (docs, a.txt) 
+#Si el usuario no tuviera permiso de escritura sobre b.txt 
+#No debería eliminar las carpetas padre docs ni user, solo a.txt
+rm -PatH->"/home/user" -Id->vdb1
+#Elimina la carpeta user y todo su contenido (docs, a.txt) sin importar los permisos (logueado como usuario root)
+Rm -Id->vdb1 -path->"/home/user" -RF
+
+PAUSE
+#Modifica el archivo a.txt
+#El tamaño del archivo es de 22 bytes
+#El contenido sería: abcdefghijklmnopqrstu
+Edit -SIZE->22 -id->vdb1 -PatH->"/home/user/docs/a.txt"
+#Modifica el archivo b.txt
+#El contenido del archivo será el mismo que el archivo c.txt 
+#que se encuentra en el disco duro de la computadora.
+edit -id->vda1 -path->"/home/user/docs/b.txt" -cont ->"/home/Documents/c.txt"
+#Modifica nuevamente el archivo b.txt
+edit -id->vda1 -path->"/home/user/docs/b.txt" -cont ->"/home/Documents/d.txt"
+
+PAUSE
+#Cambia el nombre del archivo a.txt a b1.txt
+ren -PatH->"/home/user/docs/a.txt" -Id->vdb1 -name->"b1.txt" 
+#Debera mostrar error ya que el archivo b1.txt ya existe
+ren -PatH->"/home/user/docs/c.txt" -Id->vdb1 -name->"b1.txt"
+
+PAUSE
+#Crea la carpeta usac
+#Si no existen las carpetas home user o docs se crean 
+Mkdir -P -id->vda1 -path->"/home/user/docs/usac"
+#Crea la carpeta "archivos 2016" 
+#La carpeta padre ya debe existir
+Mkdir -ID->vda1 -path->"/home/mis documentos/archivos 2016"
+
+PAUSE
+#/
+#|_home #664
+# |_user #664
+# | |_documents #664 
+# | |_a.txt #664
+# | |_b.txt #224 
+# |_images #664
+#Copia documents a images
+cp -id->vda2 -Path->"/home/user/documents" -dest->"/home/images"
+
+PAUSE
+#/
+#|_home #664
+# |_user #664
+# | |_documents #664 
+# | |_a.txt #664
+# | |_b.txt #224 
+# |_images #664
+#Mueve documents a images
+mv -id->vda1 -Path->"/home/user/documents" \*
+-dest->"/home/images"
+
+PAUSE
+find -id->vda1 -path->"/" -namE->* #Arbol actual
+#/
+#|_home #664
+# |_user #664
+# | |_a.txt #664
+# | |_b.txt #420
+# |_images #664
+# |_a.jpg #664
+# |_abcd.jpg #664
+#Busca los archivos que tengan una letra como nombre 
+#y cualquier extensión
+find -id->vda1 -path->"/home" -name->"?.*"
+
+PAUSE
+#Cambia el propietario de la carpeta home recursivamente 
+chown -id->vda1 -path->"/home" -R -usr->user2
+#Cambia los permisos de la carpeta home 
+chown -id->vda1 -path->"/home" -usr->user1
+
+PAUSE
+#Cambia el grupo del user2 
+chgrp -usr->user2 -grp->grupo1
+#Cambia el grupo del user1 
+chgrp -usr->user1 -grp->grupo2
+
+PAUSE
+#Simulando la perdida del sistema de archivos de la partición1
+# Loss –id::vda1
+
+PAUSE
+#Recuperando el sistema de archivos EXT3 de la partición 1
+# Recovery –id=>vda1
+
+PAUSE
+# rep -id=vda2 -path="/home/user/reports/reporte 2.pdf" -name=bm_arbdir –ruta="/home/mis documentos" 
+# rep -id=vda1 -path="/home/user/reports/reporte 3.jpg" -name=archive_directorio

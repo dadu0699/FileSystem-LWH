@@ -190,6 +190,8 @@ func agregarComando() {
 		agregarToken("CP")
 	case "exec":
 		agregarToken("EXEC")
+	case "edit":
+		agregarToken("EDIT")
 	case "fdisk":
 		agregarToken("FDISK")
 	case "find":
