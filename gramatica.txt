@@ -16,13 +16,13 @@ INSTRUCCION -> COMENTARIO
 			 | MKUSR MKUSRPARAMS
 			 | RMUSR RMUSRPARAMS
 			 | CHMOD CHMODPARAMS
-
 			 | MKFILE MKFILEPARAMS
 			 | CAT CATPARAMS
 			 | RM RMPARAMS
 			 | EDIT EDITPARAMS
 			 | REN RENPARAMS
 			 | MKDIR MKDIRPARAMS
+
 			 | CP CPPARAMS
 			 | MV MVPARAMS
 			 | FIND FINDPARAMS
@@ -81,17 +81,34 @@ CHMODPARAMS -> - idT - > id
 			 | - ugo - > entero
 			 | - R
 
+MKFILEPARAMS -> - idT - > id
+			 | PATH
+			 | - p
+			 | - size - > entero
+			 | - cont - > cadena
 
+CATPARAMS -> - idT - > id
+		   | - file entero - > cadena 
 
+RMPARAMS -> - idT - > id
+		  | PATH
+		  | - rf 
 
+EDITPARAMS -> - idT - > id
+			| PATH
+			| - size - > entero
+			| - cont - > cadena
 
+RENPARAMS -> - idT - > id
+		   | PATH
+		   | - name - > (id | cadena) 
 
+MKDIRPARAMS -> - idT - > id
+		   | PATH
+		   | - p
 
-
-
-
-
-
-
+CPPARAMS -> - idT - > id
+		   | PATH
+		   | - dest - > (id | cadena) 
 
 
