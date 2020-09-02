@@ -88,7 +88,7 @@ func instruccion() {
 	case "FDISK":
 		parser("FDISK")
 		paramsFDISK()
-	case "MOUNT": // TODO VERIFICAR COMANDO
+	case "MOUNT":
 		parser("MOUNT")
 		paramsMOUNT()
 	case "UNMOUNT":
@@ -398,6 +398,7 @@ func identificadores() {
 func paramsMOUNT() {
 	pathT := false
 	nameT := false
+	parametros := 0
 
 	for preAnalisis.GetTipo() != "EOF" && preAnalisis.GetTipo() != "COMENTARIO" {
 		parser("SIMBOLO_MENOS")
@@ -427,14 +428,17 @@ func paramsMOUNT() {
 			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-PATH | -NAME)"
 			panic(err)
 		}
+		parametros++
 	}
 
 	if preAnalisis.GetTipo() == "COMENTARIO" {
 		parser("COMENTARIO")
 	}
 
-	if (pathT || nameT) && (!pathT || !nameT) {
-		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-PATH | -NAME)")
+	if parametros > 0 {
+		if (pathT || nameT) && (!pathT || !nameT) {
+			panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-PATH | -NAME)")
+		}
 	}
 }
 
@@ -533,7 +537,7 @@ func paramsLOGIN() {
 			}
 			usrT = true
 			parser("USR")
-			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MENOS") //TODO Asignar con & o ->
 			parser("SIMBOLO_MAYOR")
 			identificadores()
 
@@ -1311,7 +1315,7 @@ func paramsFIND() {
 				parser("SIMBOLO_INTERROGACION")
 			} else if preAnalisis.GetTipo() == "SIMBOLO_ASTERISCO" {
 				parser("SIMBOLO_ASTERISCO")
-			} else if preAnalisis.GetTipo() == "ID" || preAnalisis.GetTipo() == "CADENA" {
+			} else {
 				identificadores()
 			}
 

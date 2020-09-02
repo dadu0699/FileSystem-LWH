@@ -115,7 +115,7 @@ func EliminarDisco(path string) {
 
 // CrearParticion crear el struct y lo agrega en el mbr
 func CrearParticion(size int64, path string, name string, unit string,
-	typeS string, fit string, addT int64, delelteS string) {
+	typeS string, fit string) {
 	MontarDisco(path)
 
 	// Asignacion de tamaño especificado por la unidad
@@ -250,6 +250,17 @@ func particionActivaSiguiente(posicion int) int {
 		}
 	}
 	return -1
+}
+
+// EliminarParticion realiza el formateo y eliminacion de una particion
+func EliminarParticion(path string, name string, deleteP string) {
+	MontarDisco(path)
+	for i := 0; i < 4; i++ {
+		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
+			return
+		}
+	}
+	panic(">> LA PARTICION NO FUE ENCONTRADA")
 }
 
 // Graficar ejecuta el metodo para crear la tabla del disco

@@ -236,8 +236,14 @@ func fdisk() {
 			parser("ENTERO")
 		}
 	}
-	acciones.CrearParticion(tamanio, ruta, nombre, unidad, tipo, fit, addT, delelteS)
-	acciones.Graficar(ruta)
+	if addT == 0 && delelteS == "" {
+		acciones.CrearParticion(tamanio, ruta, nombre, unidad, tipo, fit)
+		acciones.Graficar(ruta)
+	} else if addT > 0 {
+
+	} else if delelteS != "" {
+		acciones.EliminarParticion(ruta, nombre, delelteS)
+	}
 }
 
 func parser(tipo string) {
