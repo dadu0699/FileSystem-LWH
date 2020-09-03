@@ -53,8 +53,8 @@ func (m *MBR) SetParticion(posicion int, particion particion.Particion) {
 }
 
 // GetParticion retorna una particion especifica
-func (m MBR) GetParticion(posicion int) particion.Particion {
-	return m.Particiones[posicion]
+func (m MBR) GetParticion(posicion int) *particion.Particion {
+	return &m.Particiones[posicion]
 }
 
 // GetParticionPuntero retorna una particion especifica

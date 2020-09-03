@@ -93,3 +93,16 @@ func (p Particion) GetNombre() string {
 func (p *Particion) SetNombre(nombre string) {
 	copy(p.Nombre[:], nombre)
 }
+
+// ReiniciarValores formatea para mostrar en la tabla
+func (p *Particion) ReiniciarValores(finPartANT int64, inicioPartPost int64) {
+	p.Estado = 0
+	p.Tipo = 0
+	p.Fit = 0
+	p.Inicio = finPartANT
+	p.Tamanio = inicioPartPost
+	copy(p.Nombre[:], " ")
+	for i := len(" "); i < 16; i++ {
+		p.Nombre[i] = byte(" "[0])
+	}
+}

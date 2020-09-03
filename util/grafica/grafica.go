@@ -30,9 +30,9 @@ func TablaDisco(masterBootR mbr.MBR) {
 	auxiliar.WriteString("</td></tr>")
 
 	for i, partition := range masterBootR.GetParticiones() {
+		auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'>")
 		if name := string(partition.GetNombre()); name != "" {
-			auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'><table color='orange' cellspacing='0'>")
-
+			auxiliar.WriteString("<table color='orange' cellspacing='0'>")
 			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_ESTADO_")
 			auxiliar.WriteString(strconv.Itoa(i + 1))
 			auxiliar.WriteString("</td><td>")
@@ -69,9 +69,42 @@ func TablaDisco(masterBootR mbr.MBR) {
 			auxiliar.WriteString("</td><td>")
 			auxiliar.WriteString(name)
 			auxiliar.WriteString("</td></tr>")
+		} else {
+			auxiliar.WriteString("<table color='green' cellspacing='0'>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_ESTADO_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString("0")
+			auxiliar.WriteString("</td></tr>")
 
-			auxiliar.WriteString("\n\t\t\t</table></td></tr>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_TIPO_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString("</td></tr>")
+
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_FIT_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString("</td></tr>")
+
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_INICIO_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(strconv.FormatInt(partition.GetInicio(), 10))
+			auxiliar.WriteString("</td></tr>")
+
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_TAMANIO_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(strconv.FormatInt(partition.GetTamanio(), 10))
+			auxiliar.WriteString("</td></tr>")
+
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_NOMBRE_")
+			auxiliar.WriteString(strconv.Itoa(i + 1))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString("</td></tr>")
 		}
+		auxiliar.WriteString("\n\t\t\t</table></td></tr>")
 	}
 
 	auxiliar.WriteString("\n\t\t</table>>];}")

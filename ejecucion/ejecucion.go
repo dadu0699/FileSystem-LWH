@@ -133,11 +133,11 @@ func rmdisk() {
 	ruta := strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 	parser("CADENA O RUTA")
 
-	fmt.Println(">> ¿Esta seguro de que desea eliminar el disco de forma permanente?")
+	fmt.Println(">> ¿Esta seguro de que desea eliminar el disco de forma permanente? (S)")
 	fmt.Print(">> ")
 	if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
 		acciones.EliminarDisco(ruta)
-		fmt.Println(">> Disco eliminado")
+		panic(">> Disco eliminado")
 	}
 }
 
@@ -242,7 +242,12 @@ func fdisk() {
 	} else if addT > 0 {
 
 	} else if delelteS != "" {
-		acciones.EliminarParticion(ruta, nombre, delelteS)
+		fmt.Println(">> ¿Esta seguro de que desea formatear la partición? (S)")
+		fmt.Print(">> ")
+		if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
+			acciones.EliminarParticion(ruta, nombre, delelteS)
+			panic(">> PARTICION FORMATEADA")
+		}
 	}
 }
 

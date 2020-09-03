@@ -144,75 +144,90 @@ func CrearParticion(size int64, path string, name string, unit string,
 
 	// Asignacion tipo de particion
 	switch strings.ToLower(typeS) {
-	case "E":
-		typeS = "P"
-	case "L":
+	case "e":
 		typeS = "E"
-	case "P":
+	case "l":
+		typeS = "L"
+	case "p":
 		fallthrough
 	default:
 		typeS = "P"
 	}
 
 	if (masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))) >= size {
-		posInicial := int64(unsafe.Sizeof(masterBootR))
 
-		// Busqueda de particiones libres o desactivas
-		particionesLibres := make([]*particion.Particion, 0)
-		for i := 0; i < 4; i++ {
-			particionAuxiliar := masterBootR.GetParticionPuntero(i)
-			if particionAuxiliar.GetEstado() == byte(0) {
-				anterior := particionActivaAnterior(i)
-				siguiente := particionActivaSiguiente(i)
-				if anterior == -1 && siguiente == -1 {
-					particionAuxiliar.SetTamanio(masterBootR.Tamanio - posInicial)
-					particionAuxiliar.SetInicio(posInicial + 1) // +1
-				} else if anterior == -1 && siguiente != -1 {
-					particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - posInicial)
-					particionAuxiliar.SetInicio(posInicial + 1) // +1
-				} else if anterior != -1 && siguiente == -1 {
-					particionAuxiliar.SetTamanio(masterBootR.Tamanio -
-						(masterBootR.GetParticion(anterior).GetInicio() +
-							masterBootR.GetParticion(anterior).GetTamanio()))
-					particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
-						masterBootR.GetParticion(anterior).GetTamanio() + 1) // +1
+		if typeS == "P" || typeS == "E" {
+			particionesLibres := buscarPartLibres()
+
+			if len(particionesLibres) == 0 {
+				panic(">> YA EXISTEN 4 PARTICIONES")
+			}
+
+			/*switch fit {
+			case "B":
+				// Ordenamiento de la lista de particiones libres de menor a mayor
+				sort.SliceStable(particionesLibres, func(i, j int) bool {
+					return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
+				})
+
+			case "W":
+				// Ordenamiento de la lista de particiones libres de mayor a menor
+				sort.SliceStable(particionesLibres, func(i, j int) bool {
+					return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
+				})
+			}*/
+
+			if typeS == "E" {
+				for _, partition := range masterBootR.GetParticiones() {
+					if string(partition.GetNombre()) != "" && string(partition.GetTipo()) == "E" {
+						panic(">> YA EXISTE UNA PARTICION EXTENDIDA")
+					}
 				}
-				particionesLibres = append(particionesLibres, particionAuxiliar)
 			}
-		}
 
-		if len(particionesLibres) == 0 {
-			panic(">> YA EXISTEN 4 PARTICIONES")
-		}
-
-		/*switch fit {
-		case "B":
-			// Ordenamiento de la lista de particiones libres de menor a mayor
-			sort.SliceStable(particionesLibres, func(i, j int) bool {
-				return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
-			})
-
-		case "W":
-			// Ordenamiento de la lista de particiones libres de mayor a menor
-			sort.SliceStable(particionesLibres, func(i, j int) bool {
-				return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
-			})
-		}*/
-
-		for i := 0; i < len(particionesLibres); i++ {
-			var partX *particion.Particion
-			partX = particionesLibres[i]
-			if partX.Tamanio >= size {
-				partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
-				escribirMBR(path)
-				return
+			for i := 0; i < len(particionesLibres); i++ {
+				var partX *particion.Particion
+				partX = particionesLibres[i]
+				if partX.Tamanio >= size {
+					partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
+					escribirMBR(path)
+					return
+				}
 			}
-		}
 
-		panic(">> LA PARTICION ES MUY GRANDE")
+			panic(">> LA PARTICION ES MUY GRANDE")
+		}
 	} else {
 		panic(">> LA PARTICION ES MAS GRANDE QUE EL DISCO")
 	}
+}
+
+func buscarPartLibres() []*particion.Particion {
+	posInicial := int64(unsafe.Sizeof(masterBootR))
+	// Busqueda de particiones libres o desactivas
+	particionesLibres := make([]*particion.Particion, 0)
+	for i := 0; i < 4; i++ {
+		particionAuxiliar := masterBootR.GetParticionPuntero(i)
+		if particionAuxiliar.GetEstado() == byte(0) {
+			anterior := particionActivaAnterior(i)
+			siguiente := particionActivaSiguiente(i)
+			if anterior == -1 && siguiente == -1 {
+				particionAuxiliar.SetTamanio(masterBootR.Tamanio - posInicial)
+				particionAuxiliar.SetInicio(posInicial + 1) // +1
+			} else if anterior == -1 && siguiente != -1 {
+				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - posInicial)
+				particionAuxiliar.SetInicio(posInicial + 1) // +1
+			} else if anterior != -1 && siguiente == -1 {
+				particionAuxiliar.SetTamanio(masterBootR.Tamanio -
+					(masterBootR.GetParticion(anterior).GetInicio() +
+						masterBootR.GetParticion(anterior).GetTamanio()))
+				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
+					masterBootR.GetParticion(anterior).GetTamanio() + 1) // +1
+			}
+			particionesLibres = append(particionesLibres, particionAuxiliar)
+		}
+	}
+	return particionesLibres
 }
 
 func escribirMBR(path string) {
@@ -257,10 +272,62 @@ func EliminarParticion(path string, name string, deleteP string) {
 	MontarDisco(path)
 	for i := 0; i < 4; i++ {
 		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
-			return
+			masterBootR.Particiones[i].Estado = 0
+			masterBootR.Particiones[i].Tipo = 0
+			masterBootR.Particiones[i].Fit = 0
+			copy(masterBootR.Particiones[i].Nombre[:], " ")
+			for j := len(" "); j < 16; j++ {
+				masterBootR.Particiones[i].Nombre[j] = byte(" "[0])
+			}
+
+			if strings.EqualFold(deleteP, "FULL") {
+				escribirCeros(path, masterBootR.Particiones[i].Inicio, masterBootR.Particiones[i].Tamanio)
+			}
+
+			posAnterior := particionActivaAnterior(i)
+			posSig := particionActivaSiguiente(i)
+			inicio := int64(0)
+			fin := int64(0)
+
+			if posAnterior != -1 {
+				inicio = masterBootR.Particiones[posAnterior].Inicio +
+					masterBootR.Particiones[posAnterior].Tamanio + 1
+			}
+
+			if posSig != -1 {
+				fin = masterBootR.Particiones[posSig].Inicio - 1
+			}
+
+			masterBootR.Particiones[i].Inicio = inicio
+			masterBootR.Particiones[i].Tamanio = fin
+			escribirMBR(path)
+			Graficar(path)
+			panic(">> PARTICION ELIMINADA CORRECTAMENTE")
 		}
 	}
 	panic(">> LA PARTICION NO FUE ENCONTRADA")
+}
+
+func escribirCeros(path string, inicio int64, fin int64) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	if err != nil {
+		panic(">> 'Error al montar disco'\n")
+	}
+
+	for i := inicio; i <= (fin + inicio); i++ {
+		var finalCharacter [2]byte
+		copy(finalCharacter[:], "0")
+		file.Seek(i, 0)
+		var binaryCharacter bytes.Buffer
+		binary.Write(&binaryCharacter, binary.BigEndian, &finalCharacter)
+		escribirBytes(file, binaryCharacter.Bytes())
+	}
 }
 
 // Graficar ejecuta el metodo para crear la tabla del disco

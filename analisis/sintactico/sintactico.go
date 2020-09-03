@@ -2,6 +2,7 @@ package sintactico
 
 import (
 	"Sistema-de-archivos-LWH/analisis/token"
+	"Sistema-de-archivos-LWH/ejecucion"
 	"Sistema-de-archivos-LWH/util"
 	"fmt"
 )
@@ -24,13 +25,12 @@ func Analizar(listadoAnalisisLexico []token.Token) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
-			fmt.Println()
 			util.LecturaTeclado()
 		}
 	}()
 
 	inicio()
-	// ejecucion.Ejecutar(listadoAnalisisLexico)
+	ejecucion.Ejecutar(listadoAnalisisLexico)
 }
 
 func inicio() {
