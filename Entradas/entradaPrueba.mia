@@ -1,5 +1,5 @@
 # exec -path->"./Entradas/entradaPrueba.mia"
-# –
+# -
 
 #Crea un disco de 3000 Kb en la carpeta home 
 Mkdisk -size->32 -path->/home/user/ \*
@@ -224,12 +224,12 @@ chgrp -usr->user1 -grp->grupo2
 
 PAUSE
 #Simulando la perdida del sistema de archivos de la partición1
-# Loss –id::vda1
+# Loss -id->vda1
 
 PAUSE
 #Recuperando el sistema de archivos EXT3 de la partición 1
-# Recovery –id=>vda1
+# Recovery -id->vda1
 
 PAUSE
-# rep -id=vda2 -path="/home/user/reports/reporte 2.pdf" -name=bm_arbdir –ruta="/home/mis documentos" 
-# rep -id=vda1 -path="/home/user/reports/reporte 3.jpg" -name=archive_directorio
+# rep -id->vda2 -path->"/home/user/reports/reporte 2.pdf" -name->bm_arbdir -ruta->"/home/mis documentos" 
+# rep -id->vda1 -path->"/home/user/reports/reporte 3.jpg" -name->archive_directorio

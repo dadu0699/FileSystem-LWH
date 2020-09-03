@@ -1,5 +1,7 @@
 package ebr
 
+import "strings"
+
 // EBR modelo de la estructura
 type EBR struct {
 	Estado    byte
@@ -19,6 +21,9 @@ func (e *EBR) Inicializar(estado byte, fit byte, inicio int64, tamanio int64,
 	e.Tamanio = tamanio
 	e.Siguiente = siguiente
 	copy(e.Nombre[:], nombre)
+	for i := len(nombre); i < 16; i++ {
+		e.Nombre[i] = byte(" "[0])
+	}
 }
 
 // GetEstado recibe una copia de EBR ya que no necesita modificarlo.
@@ -73,11 +78,13 @@ func (e *EBR) SetSiguiente(siguiente int64) {
 
 // GetNombre retorna el Nombre del EBR
 func (e EBR) GetNombre() string {
-	nombre := ""
+	var nombre strings.Builder
 	for i := 0; i < len(e.Nombre); i++ {
-		nombre += string(e.Nombre[i])
+		if e.Nombre[i] != 0 {
+			nombre.WriteString(string(e.Nombre[i]))
+		}
 	}
-	return nombre
+	return strings.TrimSpace(nombre.String())
 }
 
 // SetNombre asigna el Nombre al EBR

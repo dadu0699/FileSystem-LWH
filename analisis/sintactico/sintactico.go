@@ -2,7 +2,7 @@ package sintactico
 
 import (
 	"Sistema-de-archivos-LWH/analisis/token"
-	"Sistema-de-archivos-LWH/ejecucion"
+	"Sistema-de-archivos-LWH/util"
 	"fmt"
 )
 
@@ -25,12 +25,12 @@ func Analizar(listadoAnalisisLexico []token.Token) {
 		if r := recover(); r != nil {
 			fmt.Println(r)
 			fmt.Println()
-			// util.LecturaTeclado()
+			util.LecturaTeclado()
 		}
 	}()
 
 	inicio()
-	ejecucion.Ejecutar(listadoAnalisisLexico)
+	// ejecucion.Ejecutar(listadoAnalisisLexico)
 }
 
 func inicio() {
@@ -158,8 +158,12 @@ func instruccion() {
 	case "CHGRP":
 		parser("CHGRP")
 		paramsCHGRP()
-	case "LOSS": // TODO VERIFICAR COMANDO
-	case "RECOVERY": // TODO VERIFICAR COMANDO
+	case "LOSS":
+		parser("LOSS")
+		paramsLOSS()
+	case "RECOVERY":
+		parser("RECOVERY")
+		paramsRECOVERY()
 	case "REP":
 		parser("REP")
 		paramsREP()
@@ -1501,6 +1505,70 @@ func paramsREP() {
 
 	if !nameT || !idT || !pathT {
 		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID | -NAME| -PATH)")
+	}
+}
+
+func paramsLOSS() {
+	idT := false
+
+	for preAnalisis.GetTipo() != "EOF" && preAnalisis.GetTipo() != "COMENTARIO" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			if idT {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID)"
+			panic(err)
+		}
+	}
+
+	if preAnalisis.GetTipo() == "COMENTARIO" {
+		parser("COMENTARIO")
+	}
+
+	if !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID)")
+	}
+}
+
+func paramsRECOVERY() {
+	idT := false
+
+	for preAnalisis.GetTipo() != "EOF" && preAnalisis.GetTipo() != "COMENTARIO" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			if idT {
+				panic(">> ERROR PARAMETRO 'ID' DUPLICADO")
+			}
+			idT = true
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			parser("ID")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID)"
+			panic(err)
+		}
+	}
+
+	if preAnalisis.GetTipo() == "COMENTARIO" {
+		parser("COMENTARIO")
+	}
+
+	if !idT {
+		panic(">> 'ERROR: SE ESPERABAN PARAMETROS OBLIGATORIOS (-ID)")
 	}
 }
 

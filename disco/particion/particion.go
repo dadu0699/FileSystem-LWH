@@ -80,13 +80,13 @@ func (p *Particion) SetTamanio(tamanio int64) {
 
 // GetNombre retorna el nombre de la particion
 func (p Particion) GetNombre() string {
-	nombre := ""
+	var nombre strings.Builder
 	for i := 0; i < len(p.Nombre); i++ {
 		if p.Nombre[i] != 0 {
-			nombre += string(p.Nombre[i])
+			nombre.WriteString(string(p.Nombre[i]))
 		}
 	}
-	return strings.TrimSpace(nombre)
+	return strings.TrimSpace(nombre.String())
 }
 
 // SetNombre asigna el nombre a la particion
