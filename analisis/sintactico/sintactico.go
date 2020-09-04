@@ -102,7 +102,7 @@ func instruccion() {
 	case "MKFS":
 		parser("MKFS")
 		paramsMKFS()
-	case "LOGIN":
+	case "LOGIN": // TODO LOGIN PUEDEN VENIR NUMEROS como PWD
 		parser("LOGIN")
 		paramsLOGIN()
 	case "LOGOUT":
@@ -541,7 +541,7 @@ func paramsLOGIN() {
 			}
 			usrT = true
 			parser("USR")
-			parser("SIMBOLO_MENOS") //TODO Asignar con & o ->
+			parser("SIMBOLO_MENOS")
 			parser("SIMBOLO_MAYOR")
 			identificadores()
 

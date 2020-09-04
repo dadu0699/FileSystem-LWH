@@ -1,6 +1,7 @@
 package acciones
 
 import (
+	"Sistema-de-archivos-LWH/disco/ebr"
 	"Sistema-de-archivos-LWH/disco/mbr"
 	"Sistema-de-archivos-LWH/disco/particion"
 	"Sistema-de-archivos-LWH/util/grafica"
@@ -14,6 +15,7 @@ import (
 
 // Global
 var masterBootR mbr.MBR
+var ebrR ebr.EBR
 
 // CrearDisco crea el archivo binario
 func CrearDisco(size int64, path string, name string, unit string) {
@@ -53,7 +55,6 @@ func CrearDisco(size int64, path string, name string, unit string) {
 
 	// Inserccion del Master Boot Record
 	file.Seek(0, 0) // Posicion Byte inicial
-	var masterBootR mbr.MBR
 	masterBootR.Inicializar(size)
 	var binaryMBR bytes.Buffer
 	binary.Write(&binaryMBR, binary.BigEndian, &masterBootR)
@@ -74,8 +75,7 @@ func crearDirectorio(path string) {
 	}
 }
 
-// MontarDisco (lectura) de disco
-func MontarDisco(path string) {
+func leerMBR(path string) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
@@ -84,13 +84,36 @@ func MontarDisco(path string) {
 		}
 	}()
 	if err != nil {
-		panic(">> 'Error al montar disco'\n")
+		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
 	}
 
 	var sizeMBR int = int(unsafe.Sizeof(masterBootR))
 	data := leerBytes(file, sizeMBR)
 	buffer := bytes.NewBuffer(data)
 	err = binary.Read(buffer, binary.BigEndian, &masterBootR)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func leerEBR(path string, start int64) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	if err != nil {
+		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
+	}
+
+	file.Seek(0, 0)
+	file.Seek(start, 0)
+	sizeEBR := int(unsafe.Sizeof(ebrR))
+	data := leerBytes(file, sizeEBR)
+	buffer := bytes.NewBuffer(data)
+	err = binary.Read(buffer, binary.BigEndian, &ebrR)
 	if err != nil {
 		panic(err)
 	}
@@ -116,7 +139,8 @@ func EliminarDisco(path string) {
 // CrearParticion crear el struct y lo agrega en el mbr
 func CrearParticion(size int64, path string, name string, unit string,
 	typeS string, fit string) {
-	MontarDisco(path)
+	leerMBR(path)
+	buscarParticion(name)
 
 	// Asignacion de tamaño especificado por la unidad
 	switch strings.ToLower(unit) {
@@ -155,7 +179,6 @@ func CrearParticion(size int64, path string, name string, unit string,
 	}
 
 	if (masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))) >= size {
-
 		if typeS == "P" || typeS == "E" {
 			particionesLibres := buscarPartLibres()
 
@@ -163,19 +186,21 @@ func CrearParticion(size int64, path string, name string, unit string,
 				panic(">> YA EXISTEN 4 PARTICIONES")
 			}
 
-			/*switch fit {
-			case "B":
-				// Ordenamiento de la lista de particiones libres de menor a mayor
-				sort.SliceStable(particionesLibres, func(i, j int) bool {
-					return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
-				})
+			/*
+				switch fit {
+				case "B":
+					// Ordenamiento de la lista de particiones libres de menor a mayor
+					sort.SliceStable(particionesLibres, func(i, j int) bool {
+						return particionesLibres[i].Tamanio > particionesLibres[j].Tamanio
+					})
 
-			case "W":
-				// Ordenamiento de la lista de particiones libres de mayor a menor
-				sort.SliceStable(particionesLibres, func(i, j int) bool {
-					return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
-				})
-			}*/
+				case "W":
+					// Ordenamiento de la lista de particiones libres de mayor a menor
+					sort.SliceStable(particionesLibres, func(i, j int) bool {
+						return particionesLibres[i].Tamanio < particionesLibres[j].Tamanio
+					})
+				}
+			*/
 
 			if typeS == "E" {
 				for _, partition := range masterBootR.GetParticiones() {
@@ -190,15 +215,59 @@ func CrearParticion(size int64, path string, name string, unit string,
 				partX = particionesLibres[i]
 				if partX.Tamanio >= size {
 					partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
-					escribirMBR(path)
+					actualizarMBR(path)
 					return
 				}
 			}
 
 			panic(">> LA PARTICION ES MUY GRANDE")
+		} else if typeS == "L" {
+			for _, partition := range masterBootR.GetParticiones() {
+				if string(partition.GetNombre()) != "" && string(partition.GetTipo()) == "E" {
+					leerEBR(path, partition.Inicio)
+
+					if ebrR.GetNombre() == "" {
+						if int64(unsafe.Sizeof(ebrR))+size <= partition.Tamanio {
+							ebrR.Inicializar(byte(fit[0]), partition.Inicio, size, 0, name)
+							actualizarEBR(path, partition.Inicio)
+						} else {
+							panic(">> TAMAÑO DE PARTICION LOGICA MUY GRANDE")
+						}
+					} else {
+						for ebrR.Siguiente != 0 {
+							leerEBR(path, ebrR.Siguiente)
+						}
+
+						if (ebrR.Inicio+ebrR.Tamanio < partition.Tamanio) &&
+							ebrR.Inicio+ebrR.Tamanio+1+int64(unsafe.Sizeof(ebrR))+size <=
+								partition.Tamanio {
+							ebrR.Siguiente = ebrR.Inicio + ebrR.Tamanio + 1
+							actualizarEBR(path, ebrR.Inicio)
+
+							var nuevoEbr ebr.EBR
+							nuevoEbr.Inicializar(byte(fit[0]), ebrR.Siguiente, size, 0, name)
+							ebrR = nuevoEbr
+							actualizarEBR(path, ebrR.Inicio)
+						} else {
+							panic(">> TAMAÑO DE PARTICION MUY GRANDE")
+						}
+					}
+					return
+				}
+			}
+
+			panic(">> NO SE ENCONTRO UNA PARTICION EXTENDIDA")
 		}
 	} else {
 		panic(">> LA PARTICION ES MAS GRANDE QUE EL DISCO")
+	}
+}
+
+func buscarParticion(nombre string) {
+	for _, partition := range masterBootR.GetParticiones() {
+		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre {
+			panic(">> YA EXISTE UNA PARTICION CON ESE NOMBRE")
+		}
 	}
 }
 
@@ -223,6 +292,10 @@ func buscarPartLibres() []*particion.Particion {
 						masterBootR.GetParticion(anterior).GetTamanio()))
 				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
 					masterBootR.GetParticion(anterior).GetTamanio() + 1) // +1
+			} else if anterior != -1 && siguiente != -1 {
+				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
+					masterBootR.GetParticion(anterior).GetTamanio() + 1)
+				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - 1)
 			}
 			particionesLibres = append(particionesLibres, particionAuxiliar)
 		}
@@ -230,7 +303,7 @@ func buscarPartLibres() []*particion.Particion {
 	return particionesLibres
 }
 
-func escribirMBR(path string) {
+func actualizarMBR(path string) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
@@ -247,6 +320,24 @@ func escribirMBR(path string) {
 	var binaryMBR bytes.Buffer
 	binary.Write(&binaryMBR, binary.BigEndian, &masterBootR)
 	escribirBytes(file, binaryMBR.Bytes())
+}
+
+func actualizarEBR(path string, pos int64) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	if err != nil {
+		panic(">> 'Error al montar disco'\n")
+	}
+
+	file.Seek(pos, 0) // Posicion Byte inicial
+	var binaryEBR bytes.Buffer
+	binary.Write(&binaryEBR, binary.BigEndian, &ebrR)
+	escribirBytes(file, binaryEBR.Bytes())
 }
 
 func particionActivaAnterior(posicion int) int {
@@ -269,7 +360,7 @@ func particionActivaSiguiente(posicion int) int {
 
 // EliminarParticion realiza el formateo y eliminacion de una particion
 func EliminarParticion(path string, name string, deleteP string) {
-	MontarDisco(path)
+	leerMBR(path)
 	for i := 0; i < 4; i++ {
 		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
 			masterBootR.Particiones[i].Estado = 0
@@ -284,24 +375,25 @@ func EliminarParticion(path string, name string, deleteP string) {
 				escribirCeros(path, masterBootR.Particiones[i].Inicio, masterBootR.Particiones[i].Tamanio)
 			}
 
-			posAnterior := particionActivaAnterior(i)
-			posSig := particionActivaSiguiente(i)
 			inicio := int64(0)
 			fin := int64(0)
 
-			if posAnterior != -1 {
-				inicio = masterBootR.Particiones[posAnterior].Inicio +
-					masterBootR.Particiones[posAnterior].Tamanio + 1
-			}
+			/*
+				posAnterior := particionActivaAnterior(i)
+				posSig := particionActivaSiguiente(i)
+					if posAnterior != -1 {
+						inicio = masterBootR.Particiones[posAnterior].Inicio +
+							masterBootR.Particiones[posAnterior].Tamanio + 1
+					}
 
-			if posSig != -1 {
-				fin = masterBootR.Particiones[posSig].Inicio - 1
-			}
+					if posSig != -1 {
+						fin = masterBootR.Particiones[posSig].Inicio - 1
+					}
+			*/
 
 			masterBootR.Particiones[i].Inicio = inicio
 			masterBootR.Particiones[i].Tamanio = fin
-			escribirMBR(path)
-			Graficar(path)
+			actualizarMBR(path)
 			panic(">> PARTICION ELIMINADA CORRECTAMENTE")
 		}
 	}
@@ -330,8 +422,62 @@ func escribirCeros(path string, inicio int64, fin int64) {
 	}
 }
 
+// CambiarTamanio metodo el cual aumenta o reduce el tamanio de una particion
+func CambiarTamanio(addT int64, path string, name string, unit string) {
+	leerMBR(path)
+
+	switch strings.ToLower(unit) {
+	case "b":
+		addT *= 1
+	case "m":
+		addT *= (1024 * 1024)
+	case "k":
+		fallthrough
+	default:
+		addT *= 1024
+	}
+
+	for i := 0; i < 4; i++ {
+		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
+			if addT > 0 {
+				posSig := particionActivaSiguiente(i + 1)
+				if posSig == -1 {
+					if masterBootR.GetParticion(i).GetTamanio() < masterBootR.Tamanio &&
+						addT <= masterBootR.Tamanio {
+						masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].Tamanio + addT
+					} else {
+						panic(">> EL AUMENTO DE TAMAÑO DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL DEL DISCO")
+					}
+				} else {
+					part := masterBootR.GetParticion(i)
+					fmt.Println((part.GetInicio() + part.GetTamanio() + 1))
+					fmt.Println((masterBootR.GetParticion(posSig).GetInicio() - 1))
+					fmt.Println(addT)
+					fmt.Println(addT <= (masterBootR.GetParticion(posSig).GetInicio() - 1))
+
+					if (part.GetInicio()+part.GetTamanio()+1) < (masterBootR.GetParticion(posSig).GetInicio()-1) &&
+						addT <= (masterBootR.GetParticion(posSig).GetInicio()-1) {
+						masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].Tamanio + addT
+					} else {
+						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
+					}
+				}
+			} else {
+				if masterBootR.GetParticion(i).GetTamanio() >= (addT * -1) {
+					masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].Tamanio + addT
+				} else {
+					panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
+				}
+			}
+			actualizarMBR(path)
+			return
+		}
+	}
+	panic(">> LA PARTICION NO FUE ENCONTRADA")
+}
+
 // Graficar ejecuta el metodo para crear la tabla del disco
 func Graficar(path string) {
-	MontarDisco(path)
+	leerMBR(path)
 	grafica.TablaDisco(masterBootR)
 }

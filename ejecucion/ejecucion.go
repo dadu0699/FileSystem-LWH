@@ -5,6 +5,7 @@ import (
 	"Sistema-de-archivos-LWH/disco/acciones"
 	"Sistema-de-archivos-LWH/util"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -133,11 +134,16 @@ func rmdisk() {
 	ruta := strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
 	parser("CADENA O RUTA")
 
-	fmt.Println(">> ¿Esta seguro de que desea eliminar el disco de forma permanente? (S)")
-	fmt.Print(">> ")
-	if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
-		acciones.EliminarDisco(ruta)
-		panic(">> Disco eliminado")
+	if _, err := os.Stat(ruta); err == nil {
+		fmt.Println(">> ¿Esta seguro de que desea eliminar el disco de forma permanente? (S)")
+		fmt.Print(">> ")
+		if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
+			acciones.EliminarDisco(ruta)
+			panic(">> Disco eliminado")
+		}
+	} else {
+		msg := ">> " + fmt.Sprintf("%s", err)
+		panic(msg)
 	}
 }
 
@@ -231,16 +237,24 @@ func fdisk() {
 			parser("ADD")
 			parser("SIMBOLO_MENOS")
 			parser("SIMBOLO_MAYOR")
+			if preAnalisis.GetTipo() == "SIMBOLO_MENOS" {
+				parser("SIMBOLO_MENOS")
+			}
+
 			i, _ := strconv.ParseInt(preAnalisis.GetValor(), 10, 64)
 			addT = i
+
+			if listaTokens[index-1].GetTipo() == "SIMBOLO_MENOS" {
+				addT *= -1
+			}
 			parser("ENTERO")
 		}
 	}
+
 	if addT == 0 && delelteS == "" {
 		acciones.CrearParticion(tamanio, ruta, nombre, unidad, tipo, fit)
-		acciones.Graficar(ruta)
-	} else if addT > 0 {
-
+	} else if addT != 0 {
+		acciones.CambiarTamanio(addT, ruta, nombre, unidad)
 	} else if delelteS != "" {
 		fmt.Println(">> ¿Esta seguro de que desea formatear la partición? (S)")
 		fmt.Print(">> ")
@@ -249,6 +263,7 @@ func fdisk() {
 			panic(">> PARTICION FORMATEADA")
 		}
 	}
+	acciones.Graficar(ruta)
 }
 
 func parser(tipo string) {

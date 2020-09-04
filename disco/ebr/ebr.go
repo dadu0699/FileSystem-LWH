@@ -13,9 +13,9 @@ type EBR struct {
 }
 
 // Inicializar Recibe un puntero EBR para ser modificado.
-func (e *EBR) Inicializar(estado byte, fit byte, inicio int64, tamanio int64,
+func (e *EBR) Inicializar(fit byte, inicio int64, tamanio int64,
 	siguiente int64, nombre string) {
-	e.Estado = estado
+	e.Estado = 1
 	e.Fit = fit
 	e.Inicio = inicio
 	e.Tamanio = tamanio
