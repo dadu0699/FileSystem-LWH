@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Variables globales
@@ -46,8 +47,9 @@ func iniciar() {
 	case "MOUNT":
 		parser("MOUNT")
 		mount()
-
 	case "UNMOUNT":
+		parser("UNMOUNT")
+		listadoIDN()
 	case "MKFS":
 	case "LOGIN":
 	case "MKGRP":
@@ -297,6 +299,26 @@ func mount() {
 		sarchivos.Montar(path, name)
 	} else {
 		sarchivos.MostrarMount()
+	}
+}
+
+func listadoIDN() {
+	switch preAnalisis.GetTipo() {
+	case "SIMBOLO_MENOS":
+		parser("SIMBOLO_MENOS")
+		idn := preAnalisis.GetValor()
+		if !strings.EqualFold(string(idn[0]), "I") &&
+			!strings.EqualFold(string(idn[1]), "D") &&
+			!unicode.IsDigit(rune(idn[2])) {
+			panic(">> SE ESPERABA EL PARAMETRO IDn")
+		}
+		parser("ID")
+		parser("SIMBOLO_MENOS")
+		parser("SIMBOLO_MAYOR")
+		id := strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+		sarchivos.Desmontar(id)
+		parser("ID")
+		listadoIDN()
 	}
 }
 

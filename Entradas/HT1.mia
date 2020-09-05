@@ -25,3 +25,9 @@ Fdisk -sizE->10 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Pr
 Pause
 fdisk -add->-5 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
 fdisk -add->2 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Prueba 
+
+pause 
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4

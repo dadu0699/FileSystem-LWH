@@ -448,8 +448,8 @@ func paramsMOUNT() {
 
 func listadoIDN() {
 	switch preAnalisis.GetTipo() {
-	case "-":
-		parser("-")
+	case "SIMBOLO_MENOS":
+		parser("SIMBOLO_MENOS")
 		parser("ID")
 		parser("SIMBOLO_MENOS")
 		parser("SIMBOLO_MAYOR")

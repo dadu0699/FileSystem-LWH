@@ -64,3 +64,27 @@ func MostrarMount() {
 			"\" -name->\""+partition.Nombre+"\"")
 	}
 }
+
+// Desmontar quita la particion de memoria
+func Desmontar(name string) {
+	sort.SliceStable(particionesMontadas, func(i, j int) bool {
+		return particionesMontadas[i].Numero > particionesMontadas[j].Numero
+	})
+
+	for _, partition := range particionesMontadas {
+		if partition.ID == name {
+			particionesMontadas = removeIt(partition, particionesMontadas)
+			return
+		}
+	}
+	panic(">> NO SE ENCONTRO LA PARTICION")
+}
+
+func removeIt(ss Mount, ssSlice []Mount) []Mount {
+	for idx, v := range ssSlice {
+		if v == ss {
+			return append(ssSlice[0:idx], ssSlice[idx+1:]...)
+		}
+	}
+	return ssSlice
+}
