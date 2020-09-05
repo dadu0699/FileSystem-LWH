@@ -25,9 +25,6 @@ func CrearDisco(size int64, path string, name string, unit string) {
 	file, err := os.Create(path + name)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
 		panic(err)
@@ -75,19 +72,17 @@ func crearDirectorio(path string) {
 	}
 }
 
-func leerMBR(path string) {
+// LeerMBR Publico
+func LeerMBR(path string) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
-		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
+		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'")
 	}
 
-	var sizeMBR int = int(unsafe.Sizeof(masterBootR))
+	sizeMBR := int(unsafe.Sizeof(masterBootR))
 	data := leerBytes(file, sizeMBR)
 	buffer := bytes.NewBuffer(data)
 	err = binary.Read(buffer, binary.BigEndian, &masterBootR)
@@ -100,9 +95,6 @@ func leerEBR(path string, start int64) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
 		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
@@ -139,7 +131,7 @@ func EliminarDisco(path string) {
 // CrearParticion crear el struct y lo agrega en el mbr
 func CrearParticion(size int64, path string, name string, unit string,
 	typeS string, fit string) {
-	leerMBR(path)
+	LeerMBR(path)
 	buscarParticion(name)
 
 	// Asignacion de tamaño especificado por la unidad
@@ -235,6 +227,9 @@ func CrearParticion(size int64, path string, name string, unit string,
 						}
 					} else {
 						for ebrR.Siguiente != 0 {
+							if ebrR.GetNombre() == name { //TODO NOMBRES SENSITIVE CASE?
+								panic(">> YA EXISTE UNA PARTICION LOGICA CON ESE NOMBRE")
+							}
 							leerEBR(path, ebrR.Siguiente)
 						}
 
@@ -265,10 +260,20 @@ func CrearParticion(size int64, path string, name string, unit string,
 
 func buscarParticion(nombre string) {
 	for _, partition := range masterBootR.GetParticiones() {
-		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre {
+		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre { //TODO NOMBRES SENSITIVE CASE?
 			panic(">> YA EXISTE UNA PARTICION CON ESE NOMBRE")
 		}
 	}
+}
+
+// BuscarParticionCreada por medio del nombre
+func BuscarParticionCreada(nombre string) {
+	for _, partition := range masterBootR.GetParticiones() {
+		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre { //TODO NOMBRES SENSITIVE CASE?
+			return
+		}
+	}
+	panic(">> PARTICION NO ECONTRADA")
 }
 
 func buscarPartLibres() []*particion.Particion {
@@ -307,9 +312,6 @@ func actualizarMBR(path string) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
 		panic(">> 'Error al montar disco'\n")
@@ -326,9 +328,6 @@ func actualizarEBR(path string, pos int64) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
 		panic(">> 'Error al montar disco'\n")
@@ -360,7 +359,7 @@ func particionActivaSiguiente(posicion int) int {
 
 // EliminarParticion realiza el formateo y eliminacion de una particion
 func EliminarParticion(path string, name string, deleteP string) {
-	leerMBR(path)
+	LeerMBR(path)
 	for i := 0; i < 4; i++ {
 		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
 			masterBootR.Particiones[i].Estado = 0
@@ -390,11 +389,12 @@ func EliminarParticion(path string, name string, deleteP string) {
 						fin = masterBootR.Particiones[posSig].Inicio - 1
 					}
 			*/
-
 			masterBootR.Particiones[i].Inicio = inicio
 			masterBootR.Particiones[i].Tamanio = fin
 			actualizarMBR(path)
 			panic(">> PARTICION ELIMINADA CORRECTAMENTE")
+		} else if masterBootR.GetParticion(i).GetTipo() == byte("E"[0]) {
+			leerEBR(path, masterBootR.GetParticion(i).GetInicio()) //TODO VERIFICAR PARTICIONES LOGICAS
 		}
 	}
 	panic(">> LA PARTICION NO FUE ENCONTRADA")
@@ -404,9 +404,6 @@ func escribirCeros(path string, inicio int64, fin int64) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
 	}()
 	if err != nil {
 		panic(">> 'Error al montar disco'\n")
@@ -424,7 +421,7 @@ func escribirCeros(path string, inicio int64, fin int64) {
 
 // CambiarTamanio metodo el cual aumenta o reduce el tamanio de una particion
 func CambiarTamanio(addT int64, path string, name string, unit string) {
-	leerMBR(path)
+	LeerMBR(path)
 
 	switch strings.ToLower(unit) {
 	case "b":
@@ -478,6 +475,6 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 
 // Graficar ejecuta el metodo para crear la tabla del disco
 func Graficar(path string) {
-	leerMBR(path)
+	LeerMBR(path)
 	grafica.TablaDisco(masterBootR)
 }

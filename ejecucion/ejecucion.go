@@ -3,6 +3,7 @@ package ejecucion
 import (
 	"Sistema-de-archivos-LWH/analisis/token"
 	"Sistema-de-archivos-LWH/disco/acciones"
+	"Sistema-de-archivos-LWH/disco/sarchivos"
 	"Sistema-de-archivos-LWH/util"
 	"fmt"
 	"os"
@@ -33,20 +34,19 @@ func iniciar() {
 	case "PAUSE":
 		parser("PAUSE")
 		util.LecturaTeclado()
-
 	case "MKDISK":
 		parser("MKDISK")
 		mkdisk()
-
 	case "RMDISK":
 		parser("RMDISK")
 		rmdisk()
-
 	case "FDISK":
 		parser("FDISK")
 		fdisk()
-
 	case "MOUNT":
+		parser("MOUNT")
+		mount()
+
 	case "UNMOUNT":
 	case "MKFS":
 	case "LOGIN":
@@ -256,7 +256,7 @@ func fdisk() {
 	} else if addT != 0 {
 		acciones.CambiarTamanio(addT, ruta, nombre, unidad)
 	} else if delelteS != "" {
-		fmt.Println(">> ¿Esta seguro de que desea formatear la partición? (S)")
+		fmt.Println(">> ¿Esta seguro de que desea eliminar la partición? (S)")
 		fmt.Print(">> ")
 		if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
 			acciones.EliminarParticion(ruta, nombre, delelteS)
@@ -264,6 +264,40 @@ func fdisk() {
 		}
 	}
 	acciones.Graficar(ruta)
+}
+
+func mount() {
+	path := ""
+	name := ""
+	parametros := 0
+
+	for preAnalisis.GetTipo() != "EOF" && preAnalisis.GetTipo() != "COMENTARIO" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "PATH":
+			parser("PATH")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			path = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("CADENA O RUTA")
+
+		case "NAME":
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			name = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("ID")
+
+			parametros++
+		}
+	}
+
+	if parametros > 0 {
+		sarchivos.Montar(path, name)
+	} else {
+		sarchivos.MostrarMount()
+	}
 }
 
 func parser(tipo string) {

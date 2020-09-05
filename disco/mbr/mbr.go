@@ -19,6 +19,7 @@ func (m *MBR) Inicializar(tamanio int64) {
 	m.Tamanio = tamanio
 	fecha := time.Now().Format("01-02-2006 15:04:05")
 	copy(m.FechaCreacion[:], fecha)
+	rand.Seed(time.Now().UnixNano())
 	m.DiskSignature = rand.Int63n(1000)
 }
 
