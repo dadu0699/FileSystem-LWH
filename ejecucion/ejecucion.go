@@ -5,6 +5,7 @@ import (
 	"Sistema-de-archivos-LWH/disco/acciones"
 	"Sistema-de-archivos-LWH/disco/sarchivos"
 	"Sistema-de-archivos-LWH/util"
+	"Sistema-de-archivos-LWH/util/grafica"
 	"fmt"
 	"os"
 	"strconv"
@@ -262,10 +263,12 @@ func fdisk() {
 		fmt.Print(">> ")
 		if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
 			acciones.EliminarParticion(ruta, nombre, delelteS)
-			panic(">> PARTICION FORMATEADA")
+			fmt.Println(">> PARTICION FORMATEADA")
+			util.LecturaTeclado()
 		}
 	}
-	acciones.Graficar(ruta)
+	grafica.RepDisco(ruta)
+	grafica.TablaDisco(ruta)
 }
 
 func mount() {

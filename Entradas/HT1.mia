@@ -1,7 +1,7 @@
 # exec -path->"./Entradas/HT1.mia"
 Mkdisk -size->5 -path->"/home/mis discos/" -NaMe->Hoja1_201801266.dsk # Comentario Final
 
-# rmDisk -path->"/home/mis discos/Hoja1_2018012661.dsk"
+# rmDisk -path->"/home/mis discos/Hoja1_201801266.dsk"
 
 pause
 Fdisk -sizE->20 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 -type->e

@@ -4,10 +4,8 @@ import (
 	"Sistema-de-archivos-LWH/disco/ebr"
 	"Sistema-de-archivos-LWH/disco/mbr"
 	"Sistema-de-archivos-LWH/disco/particion"
-	"Sistema-de-archivos-LWH/util/grafica"
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"strings"
 	"unsafe"
@@ -50,11 +48,12 @@ func CrearDisco(size int64, path string, name string, unit string) {
 	binary.Write(&binaryCharacter, binary.BigEndian, &finalCharacter)
 	escribirBytes(file, binaryCharacter.Bytes())
 
+	var masterBoot mbr.MBR
 	// Inserccion del Master Boot Record
 	file.Seek(0, 0) // Posicion Byte inicial
-	masterBootR.Inicializar(size)
+	masterBoot.Inicializar(size)
 	var binaryMBR bytes.Buffer
-	binary.Write(&binaryMBR, binary.BigEndian, &masterBootR)
+	binary.Write(&binaryMBR, binary.BigEndian, &masterBoot)
 	escribirBytes(file, binaryMBR.Bytes())
 }
 
@@ -215,12 +214,12 @@ func CrearParticion(size int64, path string, name string, unit string,
 			panic(">> LA PARTICION ES MUY GRANDE")
 		} else if typeS == "L" {
 			for _, partition := range masterBootR.GetParticiones() {
-				if string(partition.GetNombre()) != "" && string(partition.GetTipo()) == "E" {
+				if string(partition.GetNombre()) != "" && partition.GetTipo() == byte("E"[0]) {
 					leerEBR(path, partition.Inicio)
 
 					if ebrR.GetNombre() == "" {
 						if int64(unsafe.Sizeof(ebrR))+size <= partition.Tamanio {
-							ebrR.Inicializar(byte(fit[0]), partition.Inicio, size, 0, name)
+							ebrR.Inicializar(byte(fit[0]), partition.Inicio+int64(unsafe.Sizeof(ebrR))+1, size, 0, name)
 							actualizarEBR(path, partition.Inicio)
 						} else {
 							panic(">> TAMAÑO DE PARTICION LOGICA MUY GRANDE")
@@ -232,17 +231,16 @@ func CrearParticion(size int64, path string, name string, unit string,
 							}
 							leerEBR(path, ebrR.Siguiente)
 						}
-
 						if (ebrR.Inicio+ebrR.Tamanio < partition.Tamanio) &&
-							ebrR.Inicio+ebrR.Tamanio+1+int64(unsafe.Sizeof(ebrR))+size <=
+							ebrR.Inicio+ebrR.Tamanio+int64(unsafe.Sizeof(ebrR))+size <=
 								partition.Tamanio {
 							ebrR.Siguiente = ebrR.Inicio + ebrR.Tamanio + 1
-							actualizarEBR(path, ebrR.Inicio)
+							actualizarEBR(path, ebrR.Inicio-int64(unsafe.Sizeof(ebrR))-1)
 
 							var nuevoEbr ebr.EBR
-							nuevoEbr.Inicializar(byte(fit[0]), ebrR.Siguiente, size, 0, name)
+							nuevoEbr.Inicializar(byte(fit[0]), ebrR.Siguiente+int64(unsafe.Sizeof(ebrR))+1, size, 0, name)
 							ebrR = nuevoEbr
-							actualizarEBR(path, ebrR.Inicio)
+							actualizarEBR(path, ebrR.Inicio-int64(unsafe.Sizeof(ebrR))-1)
 						} else {
 							panic(">> TAMAÑO DE PARTICION MUY GRANDE")
 						}
@@ -250,7 +248,6 @@ func CrearParticion(size int64, path string, name string, unit string,
 					return
 				}
 			}
-
 			panic(">> NO SE ENCONTRO UNA PARTICION EXTENDIDA")
 		}
 	} else {
@@ -300,7 +297,9 @@ func buscarPartLibres() []*particion.Particion {
 			} else if anterior != -1 && siguiente != -1 {
 				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
 					masterBootR.GetParticion(anterior).GetTamanio() + 1)
-				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - 1)
+				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() -
+					(masterBootR.GetParticion(anterior).GetInicio() +
+						masterBootR.GetParticion(anterior).GetTamanio())) // VERIFICAR QUE el tamaño se correcto
 			}
 			particionesLibres = append(particionesLibres, particionAuxiliar)
 		}
@@ -447,11 +446,6 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 					}
 				} else {
 					part := masterBootR.GetParticion(i)
-					fmt.Println((part.GetInicio() + part.GetTamanio() + 1))
-					fmt.Println((masterBootR.GetParticion(posSig).GetInicio() - 1))
-					fmt.Println(addT)
-					fmt.Println(addT <= (masterBootR.GetParticion(posSig).GetInicio() - 1))
-
 					if (part.GetInicio()+part.GetTamanio()+1) < (masterBootR.GetParticion(posSig).GetInicio()-1) &&
 						addT <= (masterBootR.GetParticion(posSig).GetInicio()-1) {
 						masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].Tamanio + addT
@@ -471,10 +465,4 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 		}
 	}
 	panic(">> LA PARTICION NO FUE ENCONTRADA")
-}
-
-// Graficar ejecuta el metodo para crear la tabla del disco
-func Graficar(path string) {
-	LeerMBR(path)
-	grafica.TablaDisco(masterBootR)
 }

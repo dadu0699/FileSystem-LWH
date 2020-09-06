@@ -29,6 +29,10 @@ func Montar(path string, name string) {
 		return particionesMontadas[i].Numero > particionesMontadas[j].Numero
 	})
 
+	if buscarParticion(name) {
+		panic("LA PARTICION FUE MONTADA PREVIAMENTE")
+	}
+
 	for _, partition := range particionesMontadas {
 		if partition.Ruta == path {
 			num := partition.Numero + 1
@@ -87,4 +91,13 @@ func removeIt(ss Mount, ssSlice []Mount) []Mount {
 		}
 	}
 	return ssSlice
+}
+
+func buscarParticion(name string) bool {
+	for _, partition := range particionesMontadas {
+		if partition.Nombre == name {
+			return true
+		}
+	}
+	return false
 }

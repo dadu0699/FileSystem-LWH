@@ -1,17 +1,27 @@
 package grafica
 
 import (
+	"Sistema-de-archivos-LWH/disco/ebr"
 	"Sistema-de-archivos-LWH/disco/mbr"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
+var masterBootR mbr.MBR
+var ebrR ebr.EBR
+
 // TablaDisco genera el archivo para la grafica
-func TablaDisco(masterBootR mbr.MBR) {
+func TablaDisco(path string) {
 	var auxiliar strings.Builder
+	leerMBR(path)
+
 	auxiliar.WriteString("digraph G{")
 	auxiliar.WriteString("\n\ttbl [ \n\tshape=plaintext \n\tlabel=<")
 	auxiliar.WriteString("\n\t\t<table border='0' cellborder='1' color='black' cellspacing='0'>")
@@ -111,6 +121,57 @@ func TablaDisco(masterBootR mbr.MBR) {
 	graficar("informacionDisco", auxiliar.String())
 }
 
+// RepDisco estructura del .dsk
+func RepDisco(path string) {
+	var auxiliar strings.Builder
+	leerMBR(path)
+
+	auxiliar.WriteString("digraph G{")
+	auxiliar.WriteString("\ntbl [ \nshape=plaintext \nlabel=<")
+	auxiliar.WriteString("\n<table> \n<tr><td>MBR</td>")
+
+	for _, partition := range masterBootR.GetParticiones() {
+		if partition.GetEstado() == byte(0) {
+			auxiliar.WriteString("<td>LIBRE</td>")
+		} else {
+			if partition.GetTipo() == byte("P"[0]) {
+				auxiliar.WriteString("<td>PRIMARIA</td>")
+			} else if partition.GetTipo() == byte("E"[0]) {
+				auxiliar.WriteString("<td>")
+				auxiliar.WriteString("<table border='0' cellborder='1' cellspacing='0'>")
+				colspan := 1
+				logPart := ""
+				leerEBR(path, partition.Inicio)
+				if ebrR.Inicio != 0 {
+					logPart += "<tr>"
+					logPart += "<td>EBR</td>"
+					logPart += "<td>LOGICA</td>"
+					colspan += 2
+
+					for ebrR.Siguiente != 0 {
+						logPart += "<td>EBR</td>"
+						logPart += "<td>LOGICA</td>"
+						colspan += 2
+						leerEBR(path, ebrR.Siguiente)
+					}
+					logPart += "</tr>"
+				}
+
+				// AQUI UN FOR RETORNANDO VALOR COLSPAN Y VALOR DE PARTICIONES
+				auxiliar.WriteString("<tr><td colspan='")
+				str := strconv.Itoa(colspan)
+				auxiliar.WriteString(str)
+				auxiliar.WriteString("'>EXTENDIDA</td></tr>")
+				auxiliar.WriteString(logPart)
+				auxiliar.WriteString("</table></td>")
+			}
+		}
+	}
+
+	auxiliar.WriteString("\n</tr></table>>];}")
+	graficar("disco", auxiliar.String())
+}
+
 func graficar(filename string, data string) {
 	crearDot(filename, data)
 	compilarDot(filename)
@@ -143,6 +204,53 @@ func abrirGrafico(filename string) {
 	cmd := exec.Command(args[0], args[1:]...)
 
 	_, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func leerBytes(file *os.File, number int) []byte {
+	bytes := make([]byte, number)
+	_, err := file.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
+}
+
+func leerMBR(path string) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+	}()
+	if err != nil {
+		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'")
+	}
+
+	sizeMBR := int(unsafe.Sizeof(masterBootR))
+	data := leerBytes(file, sizeMBR)
+	buffer := bytes.NewBuffer(data)
+	err = binary.Read(buffer, binary.BigEndian, &masterBootR)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func leerEBR(path string, start int64) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer func() {
+		file.Close()
+	}()
+	if err != nil {
+		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
+	}
+
+	file.Seek(0, 0)
+	file.Seek(start, 0)
+	sizeEBR := int(unsafe.Sizeof(ebrR))
+	data := leerBytes(file, sizeEBR)
+	buffer := bytes.NewBuffer(data)
+	err = binary.Read(buffer, binary.BigEndian, &ebrR)
 	if err != nil {
 		panic(err)
 	}
