@@ -1,7 +1,7 @@
 # exec -path->"./Entradas/HT1.mia"
-Mkdisk -size->5 -path->"/home/mis discos/" -NaMe->Hoja1_201801266.dsk # Comentario Final
 
-# rmDisk -path->"/home/mis discos/Hoja1_201801266.dsk"
+rmDisk -path->"/home/mis discos/Hoja1_201801266.dsk"
+Mkdisk -size->5 -path->"/home/mis discos/" -NaMe->Hoja1_201801266.dsk # Comentario Final
 
 pause
 Fdisk -sizE->20 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 -type->e
@@ -9,25 +9,17 @@ Fdisk -sizE->18 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Pa
 Fdisk -sizE->101 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
 Fdisk -sizE->266 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4 # Comentario Final
 
-Fdisk -sizE->3 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1L -type->l
-Fdisk -sizE->5 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L -type->l
-Fdisk -sizE->2 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3L -type->l
-Fdisk -sizE->10 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4L -type->l
-
 pause
 Fdisk -delete->full -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
 Fdisk -delete->fast -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 
 
-#pause
-#Fdisk -sizE->25 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Prueba 
-Fdisk -sizE->10 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Prueba2 
+pause
+Fdisk -sizE->23 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 -type->e
 
-Pause
-fdisk -add->-5 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
-fdisk -add->2 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Prueba 
-
-pause 
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4
+pause
+Fdisk -sizE->3 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1L -type->l
+Fdisk -sizE->5 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L -type->l
+Fdisk -sizE->2 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3L -type->l
+Fdisk -sizE->10 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4L -type->l
+Fdisk -sizE->2 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L -type->l
+Fdisk -sizE->1 -unit->b -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part6L -type->l

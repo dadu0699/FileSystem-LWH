@@ -265,7 +265,7 @@ func fdisk() {
 			acciones.EliminarParticion(ruta, nombre, delelteS)
 		}
 	}
-	//grafica.RepDisco(ruta)
+	grafica.RepDisco(ruta)
 	grafica.TablaDisco(ruta)
 }
 

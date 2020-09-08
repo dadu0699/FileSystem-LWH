@@ -217,17 +217,11 @@ func CrearParticion(size int64, path string, name string, unit string,
 
 			for i := 0; i < 4; i++ {
 				if masterBootR.Particiones[i].Estado == byte(0) {
-					for _, particion := range espaciosLibres {
-						if (particion.Tamanio) >= size {
-							masterBootR.Particiones[i].Estado = 1
-							masterBootR.Particiones[i].Tipo = byte(typeS[0])
-							masterBootR.Particiones[i].Fit = byte(fit[0])
-							masterBootR.Particiones[i].Inicio = particion.Inicio
-							masterBootR.Particiones[i].Tamanio = size
-							copy(masterBootR.Particiones[i].Nombre[:], name)
-							for j := len(name); j < 16; j++ {
-								masterBootR.Particiones[i].Nombre[j] = byte(" "[0])
-							}
+					for _, part := range espaciosLibres {
+						if (part.Tamanio) >= size {
+							var aux particion.Particion
+							aux.Inicializar(1, byte(typeS[0]), byte(fit[0]), part.Inicio, size, name)
+							masterBootR.Particiones[i] = aux
 							ordernarParticiones()
 							actualizarMBR(path)
 							return
@@ -240,12 +234,13 @@ func CrearParticion(size int64, path string, name string, unit string,
 		} else if typeS == "L" {
 			for _, partition := range masterBootR.GetParticiones() {
 				if string(partition.GetNombre()) != "" && partition.GetTipo() == byte("E"[0]) {
-					leerEBR(path, partition.Inicio)
+					leerEBR(path, partition.GetInicio())
+					uSizeEBR := int64(unsafe.Sizeof(ebrR))
 
 					if ebrR.GetNombre() == "" {
-						if int64(unsafe.Sizeof(ebrR))+size <= partition.Tamanio {
-							ebrR.Inicializar(byte(fit[0]), partition.Inicio+int64(unsafe.Sizeof(ebrR))+1, size, 0, name)
-							actualizarEBR(path, partition.Inicio)
+						if uSizeEBR+size <= partition.Tamanio {
+							ebrR.Inicializar(byte(fit[0]), partition.GetInicio()+uSizeEBR+1, size, 0, name)
+							actualizarEBR(path, partition.GetInicio())
 						} else {
 							panic(">> TAMAÑO DE PARTICION LOGICA MUY GRANDE")
 						}
@@ -256,16 +251,19 @@ func CrearParticion(size int64, path string, name string, unit string,
 							}
 							leerEBR(path, ebrR.Siguiente)
 						}
-						if (ebrR.Inicio+ebrR.Tamanio < partition.Tamanio) &&
-							ebrR.Inicio+ebrR.Tamanio+int64(unsafe.Sizeof(ebrR))+size <=
-								partition.Tamanio {
-							ebrR.Siguiente = ebrR.Inicio + ebrR.Tamanio + 1
-							actualizarEBR(path, ebrR.Inicio-int64(unsafe.Sizeof(ebrR))-1)
+
+						espacioPartLogica := ebrR.GetInicio() + ebrR.GetTamanio()
+						tamanioPartExtend := partition.GetInicio() + partition.GetTamanio()
+						if espacioPartLogica < tamanioPartExtend &&
+							espacioPartLogica+1+uSizeEBR+size <= tamanioPartExtend {
+							ebrR.Siguiente = espacioPartLogica + 1
+							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1)
 
 							var nuevoEbr ebr.EBR
-							nuevoEbr.Inicializar(byte(fit[0]), ebrR.Siguiente+int64(unsafe.Sizeof(ebrR))+1, size, 0, name)
+							nuevoEbr.Inicializar(byte(fit[0]), espacioPartLogica+1+uSizeEBR+1,
+								size, 0, name)
 							ebrR = nuevoEbr
-							actualizarEBR(path, ebrR.Inicio-int64(unsafe.Sizeof(ebrR))-1)
+							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1)
 						} else {
 							panic(">> TAMAÑO DE PARTICION MUY GRANDE")
 						}
@@ -405,40 +403,6 @@ func BuscarParticionCreada(nombre string) {
 	panic(">> PARTICION NO ECONTRADA")
 }
 
-func buscarPartLibres() []*particion.Particion {
-	posInicial := int64(unsafe.Sizeof(masterBootR))
-	// Busqueda de particiones libres o desactivas
-	particionesLibres := make([]*particion.Particion, 0)
-	for i := 0; i < 4; i++ {
-		particionAuxiliar := masterBootR.GetParticionPuntero(i)
-		if particionAuxiliar.GetEstado() == byte(0) {
-			anterior := particionActivaAnterior(i)
-			siguiente := particionActivaSiguiente(i)
-			if anterior == -1 && siguiente == -1 {
-				particionAuxiliar.SetTamanio(masterBootR.Tamanio - posInicial)
-				particionAuxiliar.SetInicio(posInicial + 1) // +1
-			} else if anterior == -1 && siguiente != -1 {
-				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() - posInicial)
-				particionAuxiliar.SetInicio(posInicial + 1) // +1
-			} else if anterior != -1 && siguiente == -1 {
-				particionAuxiliar.SetTamanio(masterBootR.Tamanio -
-					(masterBootR.GetParticion(anterior).GetInicio() +
-						masterBootR.GetParticion(anterior).GetTamanio()))
-				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
-					masterBootR.GetParticion(anterior).GetTamanio() + 1) // +1
-			} else if anterior != -1 && siguiente != -1 {
-				particionAuxiliar.SetInicio(masterBootR.GetParticion(anterior).GetInicio() +
-					masterBootR.GetParticion(anterior).GetTamanio() + 1)
-				particionAuxiliar.SetTamanio(masterBootR.GetParticion(siguiente).GetInicio() -
-					(masterBootR.GetParticion(anterior).GetInicio() +
-						masterBootR.GetParticion(anterior).GetTamanio())) // VERIFICAR QUE el tamaño se correcto
-			}
-			particionesLibres = append(particionesLibres, particionAuxiliar)
-		}
-	}
-	return particionesLibres
-}
-
 func actualizarMBR(path string) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
@@ -508,18 +472,6 @@ func EliminarParticion(path string, name string, deleteP string) {
 			inicio := int64(0)
 			fin := int64(0)
 
-			/*
-				posAnterior := particionActivaAnterior(i)
-				posSig := particionActivaSiguiente(i)
-					if posAnterior != -1 {
-						inicio = masterBootR.Particiones[posAnterior].Inicio +
-							masterBootR.Particiones[posAnterior].Tamanio + 1
-					}
-
-					if posSig != -1 {
-						fin = masterBootR.Particiones[posSig].Inicio - 1
-					}
-			*/
 			masterBootR.Particiones[i].Inicio = inicio
 			masterBootR.Particiones[i].Tamanio = fin
 			ordernarParticiones()
@@ -545,7 +497,7 @@ func escribirCeros(path string, inicio int64, fin int64) {
 
 	for i := inicio; i <= (fin + inicio); i++ {
 		var finalCharacter [2]byte
-		copy(finalCharacter[:], "0")
+		copy(finalCharacter[:], "")
 		file.Seek(i, 0)
 		var binaryCharacter bytes.Buffer
 		binary.Write(&binaryCharacter, binary.BigEndian, &finalCharacter)

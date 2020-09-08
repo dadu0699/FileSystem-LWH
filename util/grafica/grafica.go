@@ -123,7 +123,6 @@ func RepDisco(path string) {
 					logPart += "</tr>"
 				}
 
-				// AQUI UN FOR RETORNANDO VALOR COLSPAN Y VALOR DE PARTICIONES
 				auxiliar.WriteString("<tr><td colspan='")
 				str := strconv.Itoa(colspan)
 				auxiliar.WriteString(str)
