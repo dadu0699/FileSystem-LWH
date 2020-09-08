@@ -263,11 +263,9 @@ func fdisk() {
 		fmt.Print(">> ")
 		if str := util.LecturaTeclado(); strings.EqualFold(str, "S") {
 			acciones.EliminarParticion(ruta, nombre, delelteS)
-			fmt.Println(">> PARTICION FORMATEADA")
-			util.LecturaTeclado()
 		}
 	}
-	grafica.RepDisco(ruta)
+	//grafica.RepDisco(ruta)
 	grafica.TablaDisco(ruta)
 }
 

@@ -4,8 +4,10 @@ import (
 	"Sistema-de-archivos-LWH/disco/ebr"
 	"Sistema-de-archivos-LWH/disco/mbr"
 	"Sistema-de-archivos-LWH/disco/particion"
+	"Sistema-de-archivos-LWH/util"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"strings"
 	"unsafe"
@@ -171,10 +173,10 @@ func CrearParticion(size int64, path string, name string, unit string,
 
 	if (masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))) >= size {
 		if typeS == "P" || typeS == "E" {
-			particionesLibres := buscarPartLibres()
+			espaciosLibres := buscarEspacioLibre()
 
-			if len(particionesLibres) == 0 {
-				panic(">> YA EXISTEN 4 PARTICIONES")
+			if len(espaciosLibres) == 0 {
+				panic(">> NO HAY ESPACIO DISPONIBLE EN EL DISCO")
 			}
 
 			/*
@@ -201,13 +203,36 @@ func CrearParticion(size int64, path string, name string, unit string,
 				}
 			}
 
-			for i := 0; i < len(particionesLibres); i++ {
-				var partX *particion.Particion
-				partX = particionesLibres[i]
-				if partX.Tamanio >= size {
-					partX.Inicializar(1, byte(typeS[0]), byte(fit[0]), partX.Inicio, size, name)
-					actualizarMBR(path)
-					return
+			if masterBootR.Particiones[3].Estado == byte(1) {
+				panic(">> YA EXISTEN 4 PARTICIONES EN EL DISCO")
+			}
+
+			/*
+				for i, particion := range espaciosLibres {
+					fmt.Println("--------------", i)
+					fmt.Println("INCIO", particion.GetInicio())
+					fmt.Println("TAMAÑO", particion.GetTamanio())
+				}
+			*/
+
+			for i := 0; i < 4; i++ {
+				if masterBootR.Particiones[i].Estado == byte(0) {
+					for _, particion := range espaciosLibres {
+						if (particion.Tamanio) >= size {
+							masterBootR.Particiones[i].Estado = 1
+							masterBootR.Particiones[i].Tipo = byte(typeS[0])
+							masterBootR.Particiones[i].Fit = byte(fit[0])
+							masterBootR.Particiones[i].Inicio = particion.Inicio
+							masterBootR.Particiones[i].Tamanio = size
+							copy(masterBootR.Particiones[i].Nombre[:], name)
+							for j := len(name); j < 16; j++ {
+								masterBootR.Particiones[i].Nombre[j] = byte(" "[0])
+							}
+							ordernarParticiones()
+							actualizarMBR(path)
+							return
+						}
+					}
 				}
 			}
 
@@ -253,6 +278,113 @@ func CrearParticion(size int64, path string, name string, unit string,
 	} else {
 		panic(">> LA PARTICION ES MAS GRANDE QUE EL DISCO")
 	}
+}
+
+func ordernarParticiones() {
+	// ORDEN de inicio menor a mayor
+	/*
+		sort.SliceStable(masterBootR.Particiones, func(i, j int) bool {
+			return masterBootR.Particiones[i].Inicio > masterBootR.Particiones[j].Inicio
+		})
+	*/
+
+	for i, particion := range masterBootR.Particiones {
+		if particion.GetEstado() == byte(0) {
+			masterBootR.Particiones[i].Inicio = masterBootR.Tamanio
+		}
+	}
+
+	n := 4
+	swapped := true
+	for swapped {
+		swapped = false
+		for i := 1; i < n; i++ {
+			if masterBootR.Particiones[i-1].Inicio > masterBootR.Particiones[i].Inicio {
+				masterBootR.Particiones[i], masterBootR.Particiones[i-1] = masterBootR.Particiones[i-1], masterBootR.Particiones[i]
+				swapped = true
+			}
+		}
+	}
+}
+
+func buscarEspacioLibre() []particion.Particion {
+	inicioParticiones := int64(unsafe.Sizeof(masterBootR)) + 1
+
+	var espaciosLibres []particion.Particion
+	var particionAux particion.Particion
+
+	ordernarParticiones()
+
+	for i, particion := range masterBootR.Particiones {
+		if i == 0 {
+			if particion.GetEstado() == byte(1) {
+				particionAux.Inicio = inicioParticiones
+				particionAux.Tamanio = (particion.GetInicio() - 1) - particionAux.GetInicio()
+				espaciosLibres = append(espaciosLibres, particionAux)
+			} else if particion.GetEstado() == byte(0) {
+				particionAux.Inicio = inicioParticiones
+				particionAux.Tamanio = masterBootR.GetTamanio() - particionAux.GetInicio()
+				espaciosLibres = append(espaciosLibres, particionAux)
+				break
+			}
+		} else if i == 3 {
+			if particion.GetEstado() == byte(1) {
+				particionAux.Inicio = particion.GetInicio() + particion.GetTamanio() + 1
+				particionAux.Tamanio = masterBootR.GetTamanio() - particion.GetTamanio()
+				espaciosLibres = append(espaciosLibres, particionAux)
+			}
+		} else if i > 0 && i < 3 {
+			anterior := particionActivaAnterior(i - 1)
+			siguiente := particionActivaSiguiente(i + 1)
+
+			if particion.GetEstado() == byte(1) {
+				if anterior == -1 {
+					particionAux.Inicio = inicioParticiones
+					particionAux.Tamanio = particion.GetInicio() - 1 - particionAux.GetInicio()
+					espaciosLibres = append(espaciosLibres, particionAux)
+				} else if anterior != -1 {
+					particionAux.Inicio = masterBootR.GetParticion(anterior).Inicio +
+						masterBootR.GetParticion(anterior).GetTamanio() + 1
+					particionAux.Tamanio = particion.GetInicio() - 1 - particionAux.GetInicio()
+					espaciosLibres = append(espaciosLibres, particionAux)
+				}
+
+				if siguiente == -1 {
+					particionAux.Inicio = particion.GetInicio() + particion.GetTamanio() + 1
+					particionAux.Tamanio = masterBootR.GetTamanio() - particionAux.GetInicio()
+					espaciosLibres = append(espaciosLibres, particionAux)
+				} else if siguiente != -1 {
+					particionAux.Inicio = particion.GetInicio() + particion.GetTamanio() + 1
+					particionAux.Tamanio = masterBootR.GetParticion(siguiente).GetInicio() - 1 - particionAux.GetInicio()
+					espaciosLibres = append(espaciosLibres, particionAux)
+				}
+			} else if particion.GetEstado() == byte(0) {
+				if anterior == -1 && siguiente == -1 {
+					particionAux.Inicio = inicioParticiones
+					particionAux.Tamanio = masterBootR.GetTamanio() - inicioParticiones
+					espaciosLibres = append(espaciosLibres, particionAux)
+					break
+				} else if anterior == -1 && siguiente != -1 {
+					particionAux.Inicio = inicioParticiones
+					particionAux.Tamanio = masterBootR.GetParticion(siguiente).GetInicio() - 1 - inicioParticiones
+					espaciosLibres = append(espaciosLibres, particionAux)
+				} else if anterior != -1 && siguiente == -1 {
+					particionAux.Inicio = masterBootR.GetParticion(anterior).GetInicio() +
+						masterBootR.GetParticion(anterior).Tamanio + 1
+					particionAux.Tamanio = masterBootR.GetTamanio() -
+						masterBootR.GetParticion(anterior).GetInicio() -
+						masterBootR.GetParticion(anterior).GetTamanio() + 1
+					espaciosLibres = append(espaciosLibres, particionAux)
+				} else if anterior != -1 && siguiente != -1 {
+					particionAux.Inicio = masterBootR.GetParticion(anterior).GetInicio() +
+						masterBootR.GetParticion(anterior).GetTamanio() + 1
+					particionAux.Tamanio = masterBootR.GetParticion(siguiente).GetInicio() - 1
+					espaciosLibres = append(espaciosLibres, particionAux)
+				}
+			}
+		}
+	}
+	return espaciosLibres
 }
 
 func buscarParticion(nombre string) {
@@ -361,9 +493,9 @@ func EliminarParticion(path string, name string, deleteP string) {
 	LeerMBR(path)
 	for i := 0; i < 4; i++ {
 		if strings.EqualFold(masterBootR.GetParticion(i).GetNombre(), name) {
-			masterBootR.Particiones[i].Estado = 0
-			masterBootR.Particiones[i].Tipo = 0
-			masterBootR.Particiones[i].Fit = 0
+			masterBootR.Particiones[i].Estado = byte(0)
+			masterBootR.Particiones[i].Tipo = byte(0)
+			masterBootR.Particiones[i].Fit = byte(0)
 			copy(masterBootR.Particiones[i].Nombre[:], " ")
 			for j := len(" "); j < 16; j++ {
 				masterBootR.Particiones[i].Nombre[j] = byte(" "[0])
@@ -390,8 +522,11 @@ func EliminarParticion(path string, name string, deleteP string) {
 			*/
 			masterBootR.Particiones[i].Inicio = inicio
 			masterBootR.Particiones[i].Tamanio = fin
+			ordernarParticiones()
 			actualizarMBR(path)
-			panic(">> PARTICION ELIMINADA CORRECTAMENTE")
+			fmt.Println(">> PARTICION ELIMINADA CORRECTAMENTE")
+			util.LecturaTeclado()
+			return
 		} else if masterBootR.GetParticion(i).GetTipo() == byte("E"[0]) {
 			leerEBR(path, masterBootR.GetParticion(i).GetInicio()) //TODO VERIFICAR PARTICIONES LOGICAS
 		}
@@ -460,6 +595,7 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 					panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 				}
 			}
+			ordernarParticiones()
 			actualizarMBR(path)
 			return
 		}

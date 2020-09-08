@@ -40,8 +40,8 @@ func TablaDisco(path string) {
 	auxiliar.WriteString("</td></tr>")
 
 	for i, partition := range masterBootR.GetParticiones() {
-		auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'>")
 		if name := string(partition.GetNombre()); name != "" {
+			auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'>")
 			auxiliar.WriteString("<table color='orange' cellspacing='0'>")
 			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_ESTADO_")
 			auxiliar.WriteString(strconv.Itoa(i + 1))
@@ -79,42 +79,8 @@ func TablaDisco(path string) {
 			auxiliar.WriteString("</td><td>")
 			auxiliar.WriteString(name)
 			auxiliar.WriteString("</td></tr>")
-		} else {
-			auxiliar.WriteString("<table color='green' cellspacing='0'>")
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_ESTADO_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString("0")
-			auxiliar.WriteString("</td></tr>")
-
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_TIPO_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString("</td></tr>")
-
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_FIT_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString("</td></tr>")
-
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_INICIO_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString(strconv.FormatInt(partition.GetInicio(), 10))
-			auxiliar.WriteString("</td></tr>")
-
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_TAMANIO_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString(strconv.FormatInt(partition.GetTamanio(), 10))
-			auxiliar.WriteString("</td></tr>")
-
-			auxiliar.WriteString("\n\t\t\t\t<tr><td>PART_NOMBRE_")
-			auxiliar.WriteString(strconv.Itoa(i + 1))
-			auxiliar.WriteString("</td><td>")
-			auxiliar.WriteString("</td></tr>")
+			auxiliar.WriteString("\n\t\t\t</table></td></tr>")
 		}
-		auxiliar.WriteString("\n\t\t\t</table></td></tr>")
 	}
 
 	auxiliar.WriteString("\n\t\t</table>>];}")
@@ -174,7 +140,7 @@ func RepDisco(path string) {
 
 func graficar(filename string, data string) {
 	crearDot(filename, data)
-	compilarDot(filename)
+	compilarDot(filename, "png")
 	// abrirGrafico(filename)
 }
 
@@ -185,8 +151,8 @@ func crearDot(filename string, data string) {
 	}
 }
 
-func compilarDot(filename string) {
-	comando := string("dot -Tpng " + filename + ".dot -o " + filename + ".png")
+func compilarDot(filename string, extension string) {
+	comando := string("dot -T" + extension + " " + filename + ".dot -o " + filename + "." + extension)
 
 	args := strings.Split(comando, " ")
 	cmd := exec.Command(args[0], args[1:]...)
