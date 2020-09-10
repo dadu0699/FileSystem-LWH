@@ -214,6 +214,7 @@ func CrearParticion(size int64, path string, name string, unit string,
 					fmt.Println("--------------", i)
 					fmt.Println("INCIO", particion.GetInicio())
 					fmt.Println("TAMAÑO", particion.GetTamanio())
+					util.LecturaTeclado()
 				}
 			*/
 
@@ -382,12 +383,12 @@ func buscarEspacioLibre() []particion.Particion {
 			} else if particion.GetEstado() == byte(0) {
 				if anterior == -1 && siguiente == -1 {
 					particionAux.Inicio = inicioParticiones
-					particionAux.Tamanio = masterBootR.GetTamanio() - inicioParticiones
+					particionAux.Tamanio = masterBootR.GetTamanio() - particionAux.Inicio
 					espaciosLibres = append(espaciosLibres, particionAux)
 					break
 				} else if anterior == -1 && siguiente != -1 {
 					particionAux.Inicio = inicioParticiones
-					particionAux.Tamanio = masterBootR.GetParticion(siguiente).GetInicio() - 1 - inicioParticiones
+					particionAux.Tamanio = masterBootR.GetParticion(siguiente).GetInicio() - 1 - particionAux.Inicio
 					espaciosLibres = append(espaciosLibres, particionAux)
 				} else if anterior != -1 && siguiente == -1 {
 					particionAux.Inicio = masterBootR.GetParticion(anterior).GetInicio() +
@@ -631,6 +632,7 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 			return
 		} else if partition.GetTipo() == byte("E"[0]) {
 			ebrR := leerEBR(path, partition.GetInicio())
+			uSizeEBR := int64(unsafe.Sizeof(ebrR))
 
 			for ebrR.GetSiguiente() != 0 {
 				if ebrR.GetNombre() == name {
@@ -645,14 +647,13 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 
 						if addT <= espacioLibre {
 							ebrR.Tamanio += addT
-							uSizeEBR := int64(unsafe.Sizeof(ebrR))
 							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 							return
 						}
 						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 					} else {
 						if ebrR.GetTamanio() >= (addT * -1) {
-							ebrR.Tamanio = ebrR.Tamanio + addT
+							ebrR.Tamanio += addT
 							return
 						}
 						panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
@@ -673,14 +674,13 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 
 					if addT <= espacioLibre {
 						ebrR.Tamanio += addT
-						uSizeEBR := int64(unsafe.Sizeof(ebrR))
 						actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 						return
 					}
 					panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 				} else {
 					if ebrR.GetTamanio() >= (addT * -1) {
-						ebrR.Tamanio = ebrR.Tamanio + addT
+						ebrR.Tamanio += addT
 						return
 					}
 					panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")

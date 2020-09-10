@@ -96,48 +96,95 @@ func RepDisco(path string) {
 	auxiliar.WriteString("\ntbl [ \nshape=plaintext \nlabel=<")
 	auxiliar.WriteString("\n<table> \n<tr><td>MBR</td>")
 
-	for _, partition := range masterBootR.GetParticiones() {
-		if partition.GetEstado() == byte(0) {
+	for i, particion := range masterBootR.GetParticiones() {
+		if i == 0 && particion.GetEstado() == 0 {
 			auxiliar.WriteString("<td>LIBRE</td>")
+			break
+
 		} else {
-			if partition.GetTipo() == byte("P"[0]) {
-				auxiliar.WriteString("<td>PRIMARIA: " + partition.GetNombre() + "</td>")
-			} else if partition.GetTipo() == byte("E"[0]) {
-				auxiliar.WriteString("<td>")
-				auxiliar.WriteString("<table border='0' cellborder='1' cellspacing='0'>")
-				colspan := 1
-				logPart := ""
-				leerEBR(path, partition.GetInicio())
-				if ebrR.GetInicio() != 0 || ebrR.GetSiguiente() != 0 {
-					logPart += "<tr>"
+			anterior := particionActivaAnterior(i - 1)
+			siguiente := particionActivaSiguiente(i + 1)
+			espacio := int64(0)
 
-					if ebrR.GetInicio() != 0 {
-						logPart += "<td>EBR</td>"
-						logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
-						colspan += 2
-					}
-
-					for ebrR.Siguiente != 0 {
-						leerEBR(path, ebrR.Siguiente)
-						logPart += "<td>EBR</td>"
-						logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
-						colspan += 2
-					}
-					logPart += "</tr>"
+			if particion.GetEstado() == 1 {
+				if anterior == -1 {
+					espacio = particion.GetInicio() - 1 - int64(unsafe.Sizeof(masterBootR))
+				} else if anterior != -1 {
+					espacio = particion.GetInicio() - 1 - (masterBootR.Particiones[anterior].GetInicio() +
+						masterBootR.Particiones[anterior].GetTamanio())
+				}
+				if espacio > 0 {
+					auxiliar.WriteString("<td>LIBRE</td>")
 				}
 
-				auxiliar.WriteString("<tr><td colspan='")
-				str := strconv.Itoa(colspan)
-				auxiliar.WriteString(str)
-				auxiliar.WriteString("'>EXTENDIDA: " + partition.GetNombre() + "</td></tr>")
-				auxiliar.WriteString(logPart)
-				auxiliar.WriteString("</table></td>")
+				if particion.GetTipo() == byte("P"[0]) {
+					auxiliar.WriteString("<td>PRIMARIA: " + particion.GetNombre() + "</td>")
+				} else {
+					auxiliar.WriteString("<td>")
+					auxiliar.WriteString("<table border='0' cellborder='1' cellspacing='0'>")
+					colspan := 1
+					logPart := ""
+
+					///////////////////////
+					leerEBR(path, particion.GetInicio())
+					if ebrR.GetInicio() != 0 || ebrR.GetSiguiente() != 0 {
+						logPart += "<tr>"
+
+						if ebrR.GetInicio() != 0 {
+							logPart += "<td>EBR</td>"
+							logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
+							colspan += 2
+						}
+
+						for ebrR.Siguiente != 0 {
+							leerEBR(path, ebrR.Siguiente)
+							logPart += "<td>EBR</td>"
+							logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
+							colspan += 2
+						}
+						logPart += "</tr>"
+					}
+					///////////////////////////
+
+					auxiliar.WriteString("<tr><td colspan='")
+					str := strconv.Itoa(colspan)
+					auxiliar.WriteString(str)
+					auxiliar.WriteString("'>EXTENDIDA: " + particion.GetNombre() + "</td></tr>")
+					auxiliar.WriteString(logPart)
+					auxiliar.WriteString("</table></td>")
+				}
+
+				if siguiente == -1 {
+					espacio = masterBootR.GetTamanio() - (particion.GetInicio() + particion.GetTamanio() + 1)
+					if espacio > 0 {
+						auxiliar.WriteString("<td>LIBRE</td>")
+					}
+					break
+				}
 			}
 		}
 	}
 
 	auxiliar.WriteString("\n</tr></table>>];}")
 	graficar("disco", auxiliar.String())
+}
+
+func particionActivaAnterior(posicion int) int {
+	for i := posicion; i >= 0; i-- {
+		if masterBootR.GetParticion(i).GetEstado() == byte(1) {
+			return i
+		}
+	}
+	return -1
+}
+
+func particionActivaSiguiente(posicion int) int {
+	for i := posicion; i < 4; i++ {
+		if masterBootR.GetParticion(i).GetEstado() == byte(1) {
+			return i
+		}
+	}
+	return -1
 }
 
 func graficar(filename string, data string) {

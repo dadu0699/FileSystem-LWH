@@ -40,9 +40,9 @@ fdisk -add->5 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEV
 fdisk -add->20 -unit->b -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L 
 pause
 
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 #Particion NO econtrada
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2
-mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 #Particion NO econtrada
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->GRANDE
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L
