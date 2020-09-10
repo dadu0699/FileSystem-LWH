@@ -236,42 +236,50 @@ func CrearParticion(size int64, path string, name string, unit string,
 		} else if typeS == "L" {
 			for _, partition := range masterBootR.GetParticiones() {
 				if string(partition.GetNombre()) != "" && partition.GetTipo() == byte("E"[0]) {
+
 					ebrR := leerEBR(path, partition.GetInicio())
+					buscarParticionL(name, path, ebrR)
 					uSizeEBR := int64(unsafe.Sizeof(ebrR))
 
-					if ebrR.GetNombre() == "" {
-						if uSizeEBR+size <= partition.Tamanio {
-							ebrR.Inicializar(byte(fit[0]), partition.GetInicio()+uSizeEBR+1, size,
-								ebrR.GetSiguiente(), name)
+					if uSizeEBR+size <= partition.Tamanio {
+						if ebrR.GetNombre() == "" && ebrR.GetSiguiente() == 0 {
+							ebrR.Inicializar(byte(fit[0]), partition.GetInicio()+uSizeEBR+1, size, 0, name)
 							actualizarEBR(path, partition.GetInicio(), ebrR)
-						} else {
-							panic(">> TAMAÑO DE PARTICION LOGICA MUY GRANDE")
+							return
 						}
-					} else {
+
+						espacioLibre := int64(0)
 						for ebrR.Siguiente != 0 {
-							if ebrR.GetNombre() == name {
-								panic(">> YA EXISTE UNA PARTICION LOGICA CON ESE NOMBRE")
+							espacioLibre = (ebrR.GetInicio() + ebrR.GetTamanio()) -
+								ebrR.GetSiguiente()
+							if uSizeEBR+size <= espacioLibre {
+								var nuevoEbr ebr.EBR
+								nuevoEbr.Siguiente = ebrR.GetSiguiente()
+								ebrR.Siguiente = ebrR.GetInicio() + ebrR.GetTamanio() + 1
+								actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
+
+								nuevoEbr.Inicializar(byte(fit[0]), ebrR.GetSiguiente(), size,
+									nuevoEbr.GetSiguiente(), name)
+								actualizarEBR(path, nuevoEbr.GetInicio()-uSizeEBR-1, nuevoEbr)
+								return
 							}
 							ebrR = leerEBR(path, ebrR.Siguiente)
 						}
 
-						espacioPartLogica := ebrR.GetInicio() + ebrR.GetTamanio()
-						tamanioPartExtend := partition.GetInicio() + partition.GetTamanio()
-						if espacioPartLogica < tamanioPartExtend &&
-							espacioPartLogica+1+uSizeEBR+size <= tamanioPartExtend {
-							ebrR.Siguiente = espacioPartLogica + 1
+						espacioLibre = ebrR.GetInicio() + ebrR.GetTamanio() + uSizeEBR + size
+						espacioParticion := partition.GetInicio() + partition.GetTamanio()
+						if espacioLibre <= espacioParticion {
+							ebrR.Siguiente = ebrR.GetInicio() + ebrR.GetTamanio() + 1
 							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 
-							var nuevoEbr ebr.EBR
-							nuevoEbr.Inicializar(byte(fit[0]), espacioPartLogica+1+uSizeEBR+1,
-								size, 0, name)
-							ebrR = nuevoEbr
+							ebrR.Inicializar(byte(fit[0]), ebrR.GetSiguiente()+uSizeEBR+1, size, 0, name)
 							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
-						} else {
-							panic(">> TAMAÑO DE PARTICION MUY GRANDE")
+							return
 						}
+						panic(">> TAMAÑO DE PARTICION LOGICA MUY GRANDE")
+					} else {
+						panic(">> TAMAÑO DE PARTICION LOGICA EXCEDE AL TAMAÑO DE LA PARTICION EXTENDIDA")
 					}
-					return
 				}
 			}
 			panic(">> NO SE ENCONTRO UNA PARTICION EXTENDIDA")
@@ -395,6 +403,19 @@ func buscarParticion(nombre string) {
 		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre {
 			panic(">> YA EXISTE UNA PARTICION CON ESE NOMBRE")
 		}
+	}
+}
+
+func buscarParticionL(name string, path string, ebrR ebr.EBR) {
+	for ebrR.GetSiguiente() != 0 {
+		if ebrR.GetNombre() == name {
+			panic(">> YA EXISTE UNA PARTICION LOGICA CON ESE NOMBRE")
+		}
+		ebrR = leerEBR(path, ebrR.GetSiguiente())
+	}
+
+	if ebrR.GetNombre() == name {
+		panic(">> YA EXISTE UNA PARTICION LOGICA CON ESE NOMBRE")
 	}
 }
 

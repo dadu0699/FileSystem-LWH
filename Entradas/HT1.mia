@@ -2,34 +2,33 @@
 
 rmDisk -path->"/home/mis discos/Hoja1_201801266.dsk"
 Mkdisk -size->5 -path->"/home/mis discos/" -NaMe->Hoja1_201801266.dsk
-
 pause
+
 Fdisk -sizE->20 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 -type->e
 Fdisk -sizE->18 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2 # Comentario Final DE LINEA
 Fdisk -sizE->101 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
 Fdisk -sizE->266 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4
-
 pause
+
 Fdisk -delete->full -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3 
 Fdisk -delete->fast -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1 
-
 pause
+
 Fdisk -sizE->21 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->LOGICAS -type->e
 Fdisk -sizE->300 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->GRANDE
-
 Pause
+
 fdisk -add->-5 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->GRANDE 
 fdisk -add->2 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->LOGICAS 
-
 pause
+
 Fdisk -sizE->3 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1L -type->l
 Fdisk -sizE->5 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L -type->l
 Fdisk -sizE->2 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3L -type->l
 Fdisk -sizE->10 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4L -type->l
 Fdisk -sizE->2 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L -type->l
 Fdisk -sizE->1 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part6L -type->l #DEBERIA DAR ERROR DE ESPACIO
-
-
 pause
+
 # Fdisk -delete->full -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1L 
 # Fdisk -delete->fast -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4L 
