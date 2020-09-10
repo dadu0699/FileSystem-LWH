@@ -217,10 +217,10 @@ func CrearParticion(size int64, path string, name string, unit string,
 				}
 			*/
 
-			for i := 0; i < 4; i++ {
-				if masterBootR.Particiones[i].Estado == byte(0) {
+			for i, partition := range masterBootR.Particiones {
+				if partition.GetEstado() == byte(0) {
 					for _, part := range espaciosLibres {
-						if (part.Tamanio) >= size {
+						if part.GetTamanio() >= size {
 							var aux particion.Particion
 							aux.Inicializar(1, byte(typeS[0]), byte(fit[0]), part.Inicio, size, name)
 							masterBootR.Particiones[i] = aux
@@ -350,7 +350,7 @@ func buscarEspacioLibre() []particion.Particion {
 		} else if i == 3 {
 			if particion.GetEstado() == byte(1) {
 				particionAux.Inicio = particion.GetInicio() + particion.GetTamanio() + 1
-				particionAux.Tamanio = masterBootR.GetTamanio() - particion.GetTamanio()
+				particionAux.Tamanio = masterBootR.GetTamanio() - particionAux.GetInicio()
 				espaciosLibres = append(espaciosLibres, particionAux)
 			}
 		} else if i > 0 && i < 3 {
@@ -648,16 +648,14 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 							uSizeEBR := int64(unsafe.Sizeof(ebrR))
 							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 							return
-						} else {
-							panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 						}
+						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 					} else {
 						if ebrR.GetTamanio() >= (addT * -1) {
 							ebrR.Tamanio = ebrR.Tamanio + addT
 							return
-						} else {
-							panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 						}
+						panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 					}
 				}
 				ebrR = leerEBR(path, ebrR.GetSiguiente())
@@ -678,16 +676,14 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 						uSizeEBR := int64(unsafe.Sizeof(ebrR))
 						actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 						return
-					} else {
-						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 					}
+					panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 				} else {
 					if ebrR.GetTamanio() >= (addT * -1) {
 						ebrR.Tamanio = ebrR.Tamanio + addT
 						return
-					} else {
-						panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 					}
+					panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 				}
 			}
 		}
