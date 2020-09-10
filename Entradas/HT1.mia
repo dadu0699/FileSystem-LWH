@@ -32,5 +32,19 @@ pause
 Fdisk -delete->full -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1L 
 Fdisk -delete->fast -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4L 
 
-#Fdisk -sizE->5 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEVA1L -type->l
-#Fdisk -sizE->250 -unit->b -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Nueva4L -type->l
+Fdisk -sizE->5 -unit->k -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEVA1L -type->l
+Fdisk -sizE->250 -unit->b -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Nueva4L -type->l
+pause 
+
+fdisk -add->5 -unit->K -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEVA1L  
+fdisk -add->20 -unit->b -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L 
+pause
+
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part1
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part3
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->GRANDE
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L
+mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEVA1L

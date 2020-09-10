@@ -430,10 +430,22 @@ func buscarParticionL(name string, path string, ebrR ebr.EBR) {
 }
 
 // BuscarParticionCreada por medio del nombre
-func BuscarParticionCreada(nombre string) {
+func BuscarParticionCreada(nombre string, path string) {
 	for _, partition := range masterBootR.GetParticiones() {
 		if string(partition.GetNombre()) != "" && string(partition.GetNombre()) == nombre {
 			return
+		} else if partition.GetTipo() == byte("E"[0]) {
+			ebrR := leerEBR(path, partition.GetInicio())
+			if ebrR.GetNombre() == nombre {
+				return
+			}
+
+			for ebrR.GetSiguiente() != 0 {
+				ebrR = leerEBR(path, ebrR.GetSiguiente())
+				if ebrR.GetNombre() == nombre {
+					return
+				}
+			}
 		}
 	}
 	panic(">> PARTICION NO ECONTRADA")
@@ -594,7 +606,7 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 				if posSig == -1 {
 					if partition.GetTamanio() < masterBootR.GetTamanio() &&
 						addT <= masterBootR.GetTamanio() {
-						masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].GetTamanio() + addT
+						masterBootR.Particiones[i].Tamanio += addT
 					} else {
 						panic(">> EL AUMENTO DE TAMAÑO DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL DEL DISCO")
 					}
@@ -602,14 +614,14 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 					part := partition
 					if (part.GetInicio()+part.GetTamanio()+1) < (masterBootR.GetParticion(posSig).GetInicio()-1) &&
 						addT <= (masterBootR.GetParticion(posSig).GetInicio()-1) {
-						masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].GetTamanio() + addT
+						masterBootR.Particiones[i].Tamanio += addT
 					} else {
 						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
 					}
 				}
 			} else {
 				if partition.GetTamanio() >= (addT * -1) {
-					masterBootR.Particiones[i].Tamanio = masterBootR.Particiones[i].GetTamanio() + addT
+					masterBootR.Particiones[i].Tamanio += addT
 				} else {
 					panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
 				}
@@ -618,6 +630,66 @@ func CambiarTamanio(addT int64, path string, name string, unit string) {
 			actualizarMBR(path)
 			return
 		} else if partition.GetTipo() == byte("E"[0]) {
+			ebrR := leerEBR(path, partition.GetInicio())
+
+			for ebrR.GetSiguiente() != 0 {
+				if ebrR.GetNombre() == name {
+					if addT > 0 {
+						espacioLibre := int64(0)
+						if ebrR.GetSiguiente() == 0 {
+							espacioLibre = partition.GetInicio() + partition.GetTamanio()
+							espacioLibre -= (ebrR.GetInicio() + ebrR.GetTamanio()) - 1
+						} else {
+							espacioLibre = ebrR.GetSiguiente() - (ebrR.GetInicio() + ebrR.GetTamanio()) - 1
+						}
+
+						if addT <= espacioLibre {
+							ebrR.Tamanio += addT
+							uSizeEBR := int64(unsafe.Sizeof(ebrR))
+							actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
+							return
+						} else {
+							panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
+						}
+					} else {
+						if ebrR.GetTamanio() >= (addT * -1) {
+							ebrR.Tamanio = ebrR.Tamanio + addT
+							return
+						} else {
+							panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
+						}
+					}
+				}
+				ebrR = leerEBR(path, ebrR.GetSiguiente())
+			}
+
+			if ebrR.GetNombre() == name {
+				if addT > 0 {
+					espacioLibre := int64(0)
+					if ebrR.GetSiguiente() == 0 {
+						espacioLibre = partition.GetInicio() + partition.GetTamanio()
+						espacioLibre -= (ebrR.GetInicio() + ebrR.GetTamanio()) - 1
+					} else {
+						espacioLibre = ebrR.GetSiguiente() - (ebrR.GetInicio() + ebrR.GetTamanio()) - 1
+					}
+
+					if addT <= espacioLibre {
+						ebrR.Tamanio += addT
+						uSizeEBR := int64(unsafe.Sizeof(ebrR))
+						actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
+						return
+					} else {
+						panic(">> ERROR, NO SE PUEDE AUMENTAR EL TAMAÑO DE LA PARTICION")
+					}
+				} else {
+					if ebrR.GetTamanio() >= (addT * -1) {
+						ebrR.Tamanio = ebrR.Tamanio + addT
+						return
+					} else {
+						panic(">> LA REDUCCION DE LA PARTICION NO PUEDE SER MAYOR AL TAMAÑO ACTUAL")
+					}
+				}
+			}
 		}
 	}
 	panic(">> LA PARTICION NO FUE ENCONTRADA")

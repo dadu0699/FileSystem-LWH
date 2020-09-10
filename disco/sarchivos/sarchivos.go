@@ -23,7 +23,7 @@ var abc = []string{"a", "b", "c", "d", "e", "g", "h", "i", "j", "k", "l", "m"}
 // Montar agrega al arreglo la particion
 func Montar(path string, name string) {
 	acciones.LeerMBR(path)
-	acciones.BuscarParticionCreada(name)
+	acciones.BuscarParticionCreada(name, path)
 
 	sort.SliceStable(particionesMontadas, func(i, j int) bool {
 		return particionesMontadas[i].Numero > particionesMontadas[j].Numero
