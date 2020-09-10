@@ -101,24 +101,24 @@ func RepDisco(path string) {
 			auxiliar.WriteString("<td>LIBRE</td>")
 		} else {
 			if partition.GetTipo() == byte("P"[0]) {
-				auxiliar.WriteString("<td>PRIMARIA</td>")
+				auxiliar.WriteString("<td>PRIMARIA: " + partition.GetNombre() + "</td>")
 			} else if partition.GetTipo() == byte("E"[0]) {
 				auxiliar.WriteString("<td>")
 				auxiliar.WriteString("<table border='0' cellborder='1' cellspacing='0'>")
 				colspan := 1
 				logPart := ""
-				leerEBR(path, partition.Inicio)
-				if ebrR.Inicio != 0 {
+				leerEBR(path, partition.GetInicio())
+				if ebrR.GetInicio() != 0 {
 					logPart += "<tr>"
 					logPart += "<td>EBR</td>"
-					logPart += "<td>LOGICA</td>"
+					logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
 					colspan += 2
 
 					for ebrR.Siguiente != 0 {
-						logPart += "<td>EBR</td>"
-						logPart += "<td>LOGICA</td>"
-						colspan += 2
 						leerEBR(path, ebrR.Siguiente)
+						logPart += "<td>EBR</td>"
+						logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
+						colspan += 2
 					}
 					logPart += "</tr>"
 				}
@@ -126,7 +126,7 @@ func RepDisco(path string) {
 				auxiliar.WriteString("<tr><td colspan='")
 				str := strconv.Itoa(colspan)
 				auxiliar.WriteString(str)
-				auxiliar.WriteString("'>EXTENDIDA</td></tr>")
+				auxiliar.WriteString("'>EXTENDIDA: " + partition.GetNombre() + "</td></tr>")
 				auxiliar.WriteString(logPart)
 				auxiliar.WriteString("</table></td>")
 			}
