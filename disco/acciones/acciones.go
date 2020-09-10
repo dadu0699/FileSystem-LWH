@@ -242,23 +242,33 @@ func CrearParticion(size int64, path string, name string, unit string,
 					uSizeEBR := int64(unsafe.Sizeof(ebrR))
 
 					if uSizeEBR+size <= partition.Tamanio {
-						if ebrR.GetNombre() == "" && ebrR.GetSiguiente() == 0 {
-							ebrR.Inicializar(byte(fit[0]), partition.GetInicio()+uSizeEBR+1, size, 0, name)
-							actualizarEBR(path, partition.GetInicio(), ebrR)
-							return
+						espacioLibre := int64(0)
+
+						if ebrR.GetNombre() == "" {
+							if ebrR.GetSiguiente() == 0 {
+								espacioLibre = partition.GetInicio() + partition.GetTamanio()
+							} else {
+								espacioLibre = ebrR.GetSiguiente() - partition.GetInicio()
+							}
+
+							if uSizeEBR+size <= espacioLibre {
+								ebrR.Inicializar(byte(fit[0]), partition.GetInicio()+uSizeEBR+1, size,
+									ebrR.GetSiguiente(), name)
+								actualizarEBR(path, partition.GetInicio(), ebrR)
+								return
+							}
+							ebrR = leerEBR(path, ebrR.Siguiente)
 						}
 
-						espacioLibre := int64(0)
 						for ebrR.Siguiente != 0 {
-							espacioLibre = (ebrR.GetInicio() + ebrR.GetTamanio()) -
-								ebrR.GetSiguiente()
+							espacioLibre = ebrR.GetSiguiente() - 1 - (ebrR.GetInicio() + ebrR.GetTamanio())
 							if uSizeEBR+size <= espacioLibre {
 								var nuevoEbr ebr.EBR
 								nuevoEbr.Siguiente = ebrR.GetSiguiente()
 								ebrR.Siguiente = ebrR.GetInicio() + ebrR.GetTamanio() + 1
 								actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 
-								nuevoEbr.Inicializar(byte(fit[0]), ebrR.GetSiguiente(), size,
+								nuevoEbr.Inicializar(byte(fit[0]), ebrR.GetSiguiente()+uSizeEBR+1, size,
 									nuevoEbr.GetSiguiente(), name)
 								actualizarEBR(path, nuevoEbr.GetInicio()-uSizeEBR-1, nuevoEbr)
 								return
@@ -502,19 +512,22 @@ func EliminarParticion(path string, name string, deleteP string) {
 			return
 		} else if partition.GetTipo() == byte("E"[0]) {
 			ebrR := leerEBR(path, partition.GetInicio())
-			uSizeEBR := int64(unsafe.Sizeof(ebrR))
 
-			if ebrR.GetNombre() == name {
-				ebrR.Inicializar(0, ebrR.GetInicio(), 0, ebrR.GetSiguiente(), "")
-				if strings.EqualFold(deleteP, "FULL") {
-					escribirCeros(path, ebrR.GetInicio(), ebrR.GetTamanio())
+			if ebrR.GetNombre() != "" || ebrR.GetSiguiente() != 0 {
+				uSizeEBR := int64(unsafe.Sizeof(ebrR))
+
+				if ebrR.GetNombre() == name {
+					ebrR.Inicializar(0, ebrR.GetInicio(), 0, ebrR.GetSiguiente(), "")
+					if strings.EqualFold(deleteP, "FULL") {
+						escribirCeros(path, ebrR.GetInicio(), ebrR.GetTamanio())
+					}
+					ebrR.Inicio = 0
+					actualizarEBR(path, partition.GetInicio(), ebrR)
+					fmt.Println(">> PARTICION LOGICA INICIAL ELIMINADA CORRECTAMENTE")
+					util.LecturaTeclado()
+					return
 				}
-				ebrR.Inicio = 0
-				actualizarEBR(path, partition.GetInicio(), ebrR)
-				fmt.Println(">> PARTICION LOGICA ELIMINADA CORRECTAMENTE")
-				util.LecturaTeclado()
-				return
-			} else if ebrR.GetSiguiente() != 0 {
+
 				ebrAux := leerEBR(path, ebrR.GetSiguiente())
 				for ebrAux.GetSiguiente() != 0 {
 					if ebrAux.GetNombre() == name {
@@ -525,18 +538,14 @@ func EliminarParticion(path string, name string, deleteP string) {
 				}
 
 				if ebrAux.GetNombre() == name {
-					if ebrAux.GetSiguiente() != 0 {
-						ebrR.Siguiente = ebrAux.GetInicio()
-						actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
-					}
-
-					ebrR = ebrAux
-					ebrR.Inicializar(0, 0, 0, ebrR.GetSiguiente(), "")
+					ebrR.Siguiente = ebrAux.GetSiguiente()
+					actualizarEBR(path, ebrR.GetInicio()-uSizeEBR-1, ebrR)
 					if strings.EqualFold(deleteP, "FULL") {
-						escribirCeros(path, ebrR.GetInicio()-uSizeEBR-1, ebrR.GetTamanio())
+						escribirCeros(path, ebrAux.GetInicio()-uSizeEBR-1, ebrAux.GetTamanio())
 					}
 					fmt.Println(">> PARTICION LOGICA ELIMINADA CORRECTAMENTE")
 					util.LecturaTeclado()
+					return
 				}
 			}
 		}

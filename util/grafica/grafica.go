@@ -108,11 +108,14 @@ func RepDisco(path string) {
 				colspan := 1
 				logPart := ""
 				leerEBR(path, partition.GetInicio())
-				if ebrR.GetInicio() != 0 {
+				if ebrR.GetInicio() != 0 || ebrR.GetSiguiente() != 0 {
 					logPart += "<tr>"
-					logPart += "<td>EBR</td>"
-					logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
-					colspan += 2
+
+					if ebrR.GetInicio() != 0 {
+						logPart += "<td>EBR</td>"
+						logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
+						colspan += 2
+					}
 
 					for ebrR.Siguiente != 0 {
 						leerEBR(path, ebrR.Siguiente)
