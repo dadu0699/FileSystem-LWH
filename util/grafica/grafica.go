@@ -271,7 +271,7 @@ func particionActivaSiguiente(posicion int) int {
 }
 
 func graficar(path string, filename string, data string, ext string) {
-	err := os.MkdirAll(path, 0777) // os.ModePerm
+	err := os.MkdirAll(path, os.ModePerm) // os.ModePerm
 	if err != nil {
 		panic(err)
 	}
