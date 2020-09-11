@@ -66,7 +66,7 @@ func escribirBytes(file *os.File, bytes []byte) {
 }
 
 func crearDirectorio(path string) {
-	err := os.MkdirAll(path, 0777)
+	err := os.MkdirAll(path, 0777) // os.ModePerm
 	if err != nil {
 		panic(err)
 	}

@@ -15,10 +15,9 @@ import (
 )
 
 var masterBootR mbr.MBR
-var ebrR ebr.EBR
 
 // TablaDisco genera el archivo para la grafica
-func TablaDisco(path string) {
+func TablaDisco(path string, filePath string, fileName string, ext string) {
 	var auxiliar strings.Builder
 	leerMBR(path)
 
@@ -84,11 +83,11 @@ func TablaDisco(path string) {
 	}
 
 	auxiliar.WriteString("\n\t\t</table>>];}")
-	graficar("informacionDisco", auxiliar.String())
+	graficar(filePath, fileName, auxiliar.String(), ext)
 }
 
 // RepDisco estructura del .dsk
-func RepDisco(path string) {
+func RepDisco(path string, filePath string, fileName string, ext string) {
 	var auxiliar strings.Builder
 	leerMBR(path)
 
@@ -98,7 +97,10 @@ func RepDisco(path string) {
 
 	for i, particion := range masterBootR.GetParticiones() {
 		if i == 0 && particion.GetEstado() == 0 {
-			auxiliar.WriteString("<td>LIBRE</td>")
+			auxiliar.WriteString("<td>LIBRE: ")
+			espacio := masterBootR.GetTamanio() - int64(unsafe.Sizeof(masterBootR))
+			auxiliar.WriteString(strconv.Itoa(int(espacio)))
+			auxiliar.WriteString("</td>")
 			break
 
 		} else {
@@ -114,7 +116,9 @@ func RepDisco(path string) {
 						masterBootR.Particiones[anterior].GetTamanio())
 				}
 				if espacio > 0 {
-					auxiliar.WriteString("<td>LIBRE</td>")
+					auxiliar.WriteString("<td>LIBRE: ")
+					auxiliar.WriteString(strconv.Itoa(int(espacio)))
+					auxiliar.WriteString("</td>")
 				}
 
 				if particion.GetTipo() == byte("P"[0]) {
@@ -125,8 +129,7 @@ func RepDisco(path string) {
 					colspan := 1
 					logPart := ""
 
-					///////////////////////
-					leerEBR(path, particion.GetInicio())
+					ebrR := leerEBR(path, particion.GetInicio())
 					if ebrR.GetInicio() != 0 || ebrR.GetSiguiente() != 0 {
 						logPart += "<tr>"
 
@@ -137,18 +140,24 @@ func RepDisco(path string) {
 						}
 
 						for ebrR.Siguiente != 0 {
-							leerEBR(path, ebrR.Siguiente)
+							espacio = ebrR.GetSiguiente() - 1 - (ebrR.GetInicio() + ebrR.GetTamanio())
+							if espacio > 0 {
+								logPart += "<td>LIBRE: "
+								logPart += strconv.Itoa(int(espacio))
+								logPart += "</td>"
+								colspan++
+							}
+
+							ebrR = leerEBR(path, ebrR.Siguiente)
 							logPart += "<td>EBR</td>"
 							logPart += "<td>LOGICA: " + ebrR.GetNombre() + "</td>"
 							colspan += 2
 						}
 						logPart += "</tr>"
 					}
-					///////////////////////////
 
 					auxiliar.WriteString("<tr><td colspan='")
-					str := strconv.Itoa(colspan)
-					auxiliar.WriteString(str)
+					auxiliar.WriteString(strconv.Itoa(colspan))
 					auxiliar.WriteString("'>EXTENDIDA: " + particion.GetNombre() + "</td></tr>")
 					auxiliar.WriteString(logPart)
 					auxiliar.WriteString("</table></td>")
@@ -157,7 +166,9 @@ func RepDisco(path string) {
 				if siguiente == -1 {
 					espacio = masterBootR.GetTamanio() - (particion.GetInicio() + particion.GetTamanio() + 1)
 					if espacio > 0 {
-						auxiliar.WriteString("<td>LIBRE</td>")
+						auxiliar.WriteString("<td>LIBRE: ")
+						auxiliar.WriteString(strconv.Itoa(int(espacio)))
+						auxiliar.WriteString("</td>")
 					}
 					break
 				}
@@ -166,7 +177,7 @@ func RepDisco(path string) {
 	}
 
 	auxiliar.WriteString("\n</tr></table>>];}")
-	graficar("disco", auxiliar.String())
+	graficar(filePath, fileName, auxiliar.String(), ext)
 }
 
 func particionActivaAnterior(posicion int) int {
@@ -187,9 +198,14 @@ func particionActivaSiguiente(posicion int) int {
 	return -1
 }
 
-func graficar(filename string, data string) {
-	crearDot(filename, data)
-	compilarDot(filename, "png")
+func graficar(path string, filename string, data string, ext string) {
+	err := os.MkdirAll(path, 0777) // os.ModePerm
+	if err != nil {
+		panic(err)
+	}
+
+	crearDot(path+filename, data)
+	compilarDot(path, filename, ext)
 	// abrirGrafico(filename)
 }
 
@@ -200,8 +216,9 @@ func crearDot(filename string, data string) {
 	}
 }
 
-func compilarDot(filename string, extension string) {
-	comando := string("dot -T" + extension + " " + filename + ".dot -o " + filename + "." + extension)
+func compilarDot(filePath string, filename string, extension string) {
+	archivo := strings.ReplaceAll(filePath+filename, " ", "_")
+	comando := string("dot -T" + extension + " " + archivo + ".dot -o " + archivo + "." + extension)
 
 	args := strings.Split(comando, " ")
 	cmd := exec.Command(args[0], args[1:]...)
@@ -251,7 +268,7 @@ func leerMBR(path string) {
 	}
 }
 
-func leerEBR(path string, start int64) {
+func leerEBR(path string, start int64) ebr.EBR {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer func() {
 		file.Close()
@@ -260,6 +277,7 @@ func leerEBR(path string, start int64) {
 		panic(">> 'ERROR, NO SE PUDO ENCONTRAR EL ARCHIVO DEL DISCO'\n")
 	}
 
+	var ebrR ebr.EBR
 	file.Seek(0, 0)
 	file.Seek(start, 0)
 	sizeEBR := int(unsafe.Sizeof(ebrR))
@@ -269,4 +287,6 @@ func leerEBR(path string, start int64) {
 	if err != nil {
 		panic(err)
 	}
+
+	return ebrR
 }

@@ -101,3 +101,13 @@ func buscarParticion(name string) bool {
 	}
 	return false
 }
+
+// ObtenerPath regresa la path de una particion
+func ObtenerPath(id string) string {
+	for _, partition := range particionesMontadas {
+		if partition.ID == id {
+			return partition.Ruta
+		}
+	}
+	panic(">> NO SE ENCONTRO LA PARTICION")
+}

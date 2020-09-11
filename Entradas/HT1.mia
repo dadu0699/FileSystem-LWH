@@ -48,3 +48,8 @@ mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part4
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part2L
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->Part5L
 mount -path->"/home/mis discos/Hoja1_201801266.dsk" -name->NUEVA1L
+
+mount
+
+rep -id->vda1 -path->"/home/REPORTES/mis discos/repMBR.png" -name->mbr
+rep -id->vda2 -path->"/home/REPORTES/mis discos/repDISK.png" -name->disk

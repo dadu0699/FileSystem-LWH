@@ -72,6 +72,8 @@ func iniciar() {
 	case "LOSS":
 	case "RECOVERY":
 	case "REP":
+		parser("REP")
+		rep()
 	}
 }
 
@@ -265,8 +267,6 @@ func fdisk() {
 			acciones.EliminarParticion(ruta, nombre, delelteS)
 		}
 	}
-	grafica.RepDisco(ruta)
-	grafica.TablaDisco(ruta)
 }
 
 func mount() {
@@ -320,6 +320,81 @@ func listadoIDN() {
 		sarchivos.Desmontar(id)
 		parser("ID")
 		listadoIDN()
+	}
+}
+
+func rep() {
+	id := ""
+	path := ""
+	nombre := ""
+	// ruta := ""
+
+	for preAnalisis.GetTipo() != "EOF" && preAnalisis.GetTipo() != "COMENTARIO" {
+		parser("SIMBOLO_MENOS")
+
+		switch preAnalisis.GetTipo() {
+		case "IDN":
+			parser("IDN")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			id = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("ID")
+
+		case "NAME":
+			parser("NAME")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			nombre = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("ID")
+
+		case "PATH":
+			parser("PATH")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			path = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("CADENA O RUTA")
+
+		case "RUTA":
+			parser("RUTA")
+			parser("SIMBOLO_MENOS")
+			parser("SIMBOLO_MAYOR")
+			// ruta = strings.ReplaceAll(preAnalisis.GetValor(), "\"", "")
+			parser("CADENA O RUTA")
+
+		default:
+			err := ">> 'ERROR: " + preAnalisis.GetValor() + " SE ESPERABA (-ID | -NAME | -PATH | -RUTA)"
+			panic(err)
+		}
+	}
+
+	if preAnalisis.GetTipo() == "COMENTARIO" {
+		parser("COMENTARIO")
+	}
+
+	posFinalPath := strings.LastIndex(path, "/")
+	carpetas := ""
+	for i := 0; i <= posFinalPath; i++ {
+		carpetas += string(path[i])
+	}
+	carpetas = strings.ReplaceAll(carpetas, " ", "_")
+
+	posEXT := strings.LastIndex(path, ".")
+	fileName := ""
+	for i := posFinalPath + 1; i < posEXT; i++ {
+		fileName += string(path[i])
+	}
+
+	ext := ""
+	for i := posEXT + 1; i < len(path); i++ {
+		ext += string(path[i])
+	}
+	filePath := sarchivos.ObtenerPath(id)
+
+	switch strings.ToUpper(nombre) {
+	case "MBR":
+		grafica.TablaDisco(filePath, carpetas, fileName, ext)
+	case "DISK":
+		grafica.TablaDisco(filePath, carpetas, fileName, ext)
 	}
 }
 
