@@ -394,7 +394,7 @@ func rep() {
 	case "MBR":
 		grafica.TablaDisco(filePath, carpetas, fileName, ext)
 	case "DISK":
-		grafica.TablaDisco(filePath, carpetas, fileName, ext)
+		grafica.RepDisco(filePath, carpetas, fileName, ext)
 	}
 }
 

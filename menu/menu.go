@@ -32,7 +32,7 @@ func Interfaz() {
 					if len(listaTokens) == 6 && listaTokens[1].GetTipo() == "SIMBOLO_MENOS" &&
 						listaTokens[2].GetTipo() == "PATH" && listaTokens[3].GetTipo() == "SIMBOLO_MENOS" &&
 						listaTokens[4].GetTipo() == "SIMBOLO_MAYOR" && (listaTokens[5].GetTipo() == "RUTA" ||
-						listaTokens[5].GetTipo() == "CADENA") {
+						listaTokens[5].GetTipo() == "CADENA") && strings.Contains(listaTokens[5].GetValor(), ".mia") {
 						archivo.Leer(listaTokens[5].GetValor())
 					} else {
 						fmt.Println(">> 'ERROR DE INSTRUCCION'")

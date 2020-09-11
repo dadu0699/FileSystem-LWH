@@ -80,6 +80,78 @@ func TablaDisco(path string, filePath string, fileName string, ext string) {
 			auxiliar.WriteString("</td></tr>")
 			auxiliar.WriteString("\n\t\t\t</table></td></tr>")
 		}
+
+		if partition.GetTipo() == byte("E"[0]) {
+			RepEBR(path, filePath, fileName+"_EBR", ext, partition.GetInicio())
+		}
+	}
+
+	auxiliar.WriteString("\n\t\t</table>>];}")
+	graficar(filePath, fileName, auxiliar.String(), ext)
+}
+
+//RepEBR reporte EBR
+func RepEBR(path string, filePath string, fileName string, ext string, posicion int64) {
+	var auxiliar strings.Builder
+	ebrR := leerEBR(path, posicion)
+	auxiliar.WriteString("digraph G{")
+	auxiliar.WriteString("\n\ttbl [ \n\tshape=plaintext \n\tlabel=<")
+	auxiliar.WriteString("\n\t\t<table border='0' cellborder='1' color='black' cellspacing='0'>")
+	auxiliar.WriteString("\n\t\t\t<tr><td colspan='2'>LISTA DE EBR</td></tr>")
+
+	pos := 1
+	if ebrR.GetInicio() != 0 || ebrR.GetSiguiente() != 0 {
+		auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'>")
+		auxiliar.WriteString("<table color='orange' cellspacing='0'>")
+		auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_NOMBRE_")
+		auxiliar.WriteString(strconv.Itoa(pos))
+		auxiliar.WriteString("</td><td>")
+		auxiliar.WriteString(ebrR.GetNombre())
+		auxiliar.WriteString("</td></tr>")
+		auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_INICIO_")
+		auxiliar.WriteString(strconv.Itoa(pos))
+		auxiliar.WriteString("</td><td>")
+		auxiliar.WriteString(strconv.FormatInt(ebrR.GetInicio(), 10))
+		auxiliar.WriteString("</td></tr>")
+		auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_TAMANIO_")
+		auxiliar.WriteString(strconv.Itoa(pos))
+		auxiliar.WriteString("</td><td>")
+		auxiliar.WriteString(strconv.FormatInt(ebrR.GetTamanio(), 10))
+		auxiliar.WriteString("</td></tr>")
+		auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_SIGUIENTE_")
+		auxiliar.WriteString(strconv.Itoa(pos))
+		auxiliar.WriteString("</td><td>")
+		auxiliar.WriteString(strconv.FormatInt(ebrR.GetSiguiente(), 10))
+		auxiliar.WriteString("</td></tr>")
+		auxiliar.WriteString("\n\t\t\t</table></td></tr>")
+
+		for ebrR.Siguiente != 0 {
+			ebrR = leerEBR(path, ebrR.GetSiguiente())
+			pos++
+			auxiliar.WriteString("\n\t\t\t<tr><td cellpadding='0' colspan='2'>")
+			auxiliar.WriteString("<table color='orange' cellspacing='0'>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_NOMBRE_")
+			auxiliar.WriteString(strconv.Itoa(pos))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(ebrR.GetNombre())
+			auxiliar.WriteString("</td></tr>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_INICIO_")
+			auxiliar.WriteString(strconv.Itoa(pos))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(strconv.FormatInt(ebrR.GetInicio(), 10))
+			auxiliar.WriteString("</td></tr>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_TAMANIO_")
+			auxiliar.WriteString(strconv.Itoa(pos))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(strconv.FormatInt(ebrR.GetTamanio(), 10))
+			auxiliar.WriteString("</td></tr>")
+			auxiliar.WriteString("\n\t\t\t\t<tr><td>EBR_SIGUIENTE_")
+			auxiliar.WriteString(strconv.Itoa(pos))
+			auxiliar.WriteString("</td><td>")
+			auxiliar.WriteString(strconv.FormatInt(ebrR.GetSiguiente(), 10))
+			auxiliar.WriteString("</td></tr>")
+			auxiliar.WriteString("\n\t\t\t</table></td></tr>")
+		}
 	}
 
 	auxiliar.WriteString("\n\t\t</table>>];}")
