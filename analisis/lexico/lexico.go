@@ -256,8 +256,8 @@ func agregarComando() {
 		agregarToken("NAME")
 	case "nombre": // Revisar
 		agregarToken("NOMBRE")
-	case "p":
-		agregarToken("P")
+	// case "p":
+	// agregarToken("P")
 	case "path":
 		agregarToken("PATH")
 	case "pwd":
