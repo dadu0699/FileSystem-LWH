@@ -30,7 +30,7 @@ func Montar(path string, name string) {
 	})
 
 	if buscarParticion(name) {
-		panic("LA PARTICION FUE MONTADA PREVIAMENTE")
+		panic(">> LA PARTICION FUE MONTADA PREVIAMENTE")
 	}
 
 	for _, partition := range particionesMontadas {
