@@ -1,8 +1,8 @@
 package lexico
 
 import (
-	"Sistema-de-archivos-LWH/analisis/errort"
-	"Sistema-de-archivos-LWH/analisis/token"
+	"FileSystem-LWH/analisis/errort"
+	"FileSystem-LWH/analisis/token"
 	"strings"
 	"unicode"
 )

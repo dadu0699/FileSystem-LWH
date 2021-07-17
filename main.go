@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Sistema-de-archivos-LWH/menu"
+	"FileSystem-LWH/menu"
 )
 
 func main() {

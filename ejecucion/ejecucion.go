@@ -1,11 +1,11 @@
 package ejecucion
 
 import (
-	"Sistema-de-archivos-LWH/analisis/token"
-	"Sistema-de-archivos-LWH/disco/acciones"
-	"Sistema-de-archivos-LWH/disco/sarchivos"
-	"Sistema-de-archivos-LWH/util"
-	"Sistema-de-archivos-LWH/util/grafica"
+	"FileSystem-LWH/analisis/token"
+	"FileSystem-LWH/disco/acciones"
+	"FileSystem-LWH/disco/sarchivos"
+	"FileSystem-LWH/util"
+	"FileSystem-LWH/util/grafica"
 	"fmt"
 	"os"
 	"strconv"

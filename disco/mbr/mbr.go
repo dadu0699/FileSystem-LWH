@@ -1,7 +1,7 @@
 package mbr
 
 import (
-	"Sistema-de-archivos-LWH/disco/particion"
+	"FileSystem-LWH/disco/particion"
 	"math/rand"
 	"time"
 )

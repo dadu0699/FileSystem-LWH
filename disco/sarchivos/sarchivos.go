@@ -1,7 +1,7 @@
 package sarchivos
 
 import (
-	"Sistema-de-archivos-LWH/disco/acciones"
+	"FileSystem-LWH/disco/acciones"
 	"fmt"
 	"sort"
 	"strconv"

@@ -1,10 +1,10 @@
 package acciones
 
 import (
-	"Sistema-de-archivos-LWH/disco/ebr"
-	"Sistema-de-archivos-LWH/disco/mbr"
-	"Sistema-de-archivos-LWH/disco/particion"
-	"Sistema-de-archivos-LWH/util"
+	"FileSystem-LWH/disco/ebr"
+	"FileSystem-LWH/disco/mbr"
+	"FileSystem-LWH/disco/particion"
+	"FileSystem-LWH/util"
 	"bytes"
 	"encoding/binary"
 	"fmt"

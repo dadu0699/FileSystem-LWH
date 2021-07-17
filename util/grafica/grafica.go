@@ -1,8 +1,8 @@
 package grafica
 
 import (
-	"Sistema-de-archivos-LWH/disco/ebr"
-	"Sistema-de-archivos-LWH/disco/mbr"
+	"FileSystem-LWH/disco/ebr"
+	"FileSystem-LWH/disco/mbr"
 	"bytes"
 	"encoding/binary"
 	"fmt"

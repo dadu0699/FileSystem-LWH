@@ -1,10 +1,10 @@
 package menu
 
 import (
-	"Sistema-de-archivos-LWH/analisis/lexico"
-	"Sistema-de-archivos-LWH/analisis/sintactico"
-	"Sistema-de-archivos-LWH/util"
-	"Sistema-de-archivos-LWH/util/archivo"
+	"FileSystem-LWH/analisis/lexico"
+	"FileSystem-LWH/analisis/sintactico"
+	"FileSystem-LWH/util"
+	"FileSystem-LWH/util/archivo"
 	"fmt"
 	"strings"
 )

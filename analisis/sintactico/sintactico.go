@@ -1,9 +1,9 @@
 package sintactico
 
 import (
-	"Sistema-de-archivos-LWH/analisis/token"
-	"Sistema-de-archivos-LWH/ejecucion"
-	"Sistema-de-archivos-LWH/util"
+	"FileSystem-LWH/analisis/token"
+	"FileSystem-LWH/ejecucion"
+	"FileSystem-LWH/util"
 	"fmt"
 )
 

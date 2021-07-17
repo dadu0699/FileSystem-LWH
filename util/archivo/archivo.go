@@ -1,8 +1,8 @@
 package archivo
 
 import (
-	"Sistema-de-archivos-LWH/analisis/lexico"
-	"Sistema-de-archivos-LWH/analisis/sintactico"
+	"FileSystem-LWH/analisis/lexico"
+	"FileSystem-LWH/analisis/sintactico"
 	"bufio"
 	"fmt"
 	"os"
